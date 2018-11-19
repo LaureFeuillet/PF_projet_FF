@@ -11,10 +11,16 @@ val empty_graph: 'a graph
 val init_graph: 'a graph -> 'b graph
 
 (**************  PARCOURS  **************)
-
+val residual_graph: 'a graph -> 'b graph
+val tour_graph: 'a graph -> 'a graph * int
 
 (**************  MISE A JOUR  **************)
+(*  *)
+val update_path: 
 
+val add_path_to_graph:
+
+val update_graph: 'a graph -> 'b graph -> int -> 'b graph
 
 (**************  FORD-FULKERSON  **************)
 

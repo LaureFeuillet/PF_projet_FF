@@ -18,12 +18,7 @@ let graph_without_arcs gr =
 	v_fold gr f result
 
 (* Construct a residual graph from a capacity graph *)
-let residual_graph gr = 
-	let result = graph_without_arcs gr in
-	(* Je veux que cette fonction regarde chaque arc et crée le ou les arcs qui correspondent dans le graphe d'écart. *)
-	let f acu id out_arcs = 
-
-	v_fold gr f result
+let residual_graph gr = assert false
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
 let tour_graph gr = assert false

@@ -21,8 +21,11 @@ let graph_without_arcs gr =
 let residual_graph gr = 
 	let result = graph_without_arcs gr in
 	(* Je veux que cette fonction regarde chaque arc et crée le ou les arcs qui correspondent dans le graphe d'écart. *)
-	let f acu id out_arcs = 
-
+	let rec f acu id out_arcs = match out_arcs with
+		| (idD,{flow = 0; capacity = capa})::tail -> f (add_arc acu id idD capa) id tail
+		| (idD,{flow = capa; capacity = capa})::tail -> f (add_arc acu idD id capa) id tail
+		| (idD,{flow = flot; capacity = capa})::tail -> f (add_arc (add_arc acu idD id flot) id idD (capa-flot)) id tail
+	in
 	v_fold gr f result
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)

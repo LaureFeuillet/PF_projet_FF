@@ -4,7 +4,9 @@ type fc = {
 	flow : int ; 
 	capacity : int } 
 
-type path = unit
+type path = (id*id) list
+
+type queue = (id*id*bool) list
 
 (**************  INITIALISATION  **************)
 (* Construct a flow graph from a given capacity graph *)

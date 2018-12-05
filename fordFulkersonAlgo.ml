@@ -34,19 +34,22 @@ let q_add q e = e::q
 (* Return the id of the first element not marked in the queue *)
 let rec q_first_not_marked q = match q with
 	|[] -> None
-	|(id, false)::tl -> Some id
+	|(id, _,false)::tl -> Some id
 	|hd::tl -> q_first_not_marked tl
+
+(* Check if the given node already exists in the queue *)
+let q_exists q id = List.mem (id, _, _) q 
 
 (* Mark the element with the given id *)
 let q_mark_element q id = 
 	let rec loop q id acu = match q with
 		|[] -> acu 
-		|(id, false)::tl -> List.append (List.append acu (id, true)) tl
-		|(id, true)::tl -> failwith "element already marked"
+		|(id, _, false)::tl -> List.append (List.append acu (id, true)) tl
+		|(id, _, true)::tl -> failwith "element already marked"
 		|hd::tl -> loop tl id (List.append acu [hd])
 	in loop q id []
 
-(* Buils a path from  *)
+(* Build a path from a queue *)
 let q_build_path q = assert false
 
 (* Construct a residual graph from a capacity graph *)
@@ -63,7 +66,7 @@ let residual_graph gr =
 	v_fold gr f result
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
-let tour_graph gr = assert false
+let tour_graph gr = 
 
 (************************************)
 (* ------------ UPDATE ------------ *)

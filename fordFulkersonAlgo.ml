@@ -50,7 +50,13 @@ let q_mark_element q id =
 	in loop q id []
 
 (* Build a path from a queue *)
-let q_build_path q = assert false
+let q_build_path q = 
+	let q_id_first (id, _, _)::tl = id in
+	let rec loop q id path = match q with
+		|[] -> path
+		|(id, father, _)::tl -> loop tl father (id, father)::path
+		|(_, _, _)::tl -> loop tl id path
+	in loop q (q_id_first q) []
 
 (* Construct a residual graph from a capacity graph *)
 let residual_graph gr = 

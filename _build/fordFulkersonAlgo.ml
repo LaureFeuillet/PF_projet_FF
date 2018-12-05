@@ -32,10 +32,12 @@ let graph_without_arcs gr =
 let q_add q e = e::q
 
 (* Return the id of the first element not marked in the queue *)
-let rec q_first_not_marked q = match q with
-	|[] -> None
-	|(id, _,false)::tl -> Some id
-	|hd::tl -> q_first_not_marked tl
+let q_first_not_marked q = 
+	let rec loop q = match q with 
+		|[] -> None
+		|(id, _,false)::tl -> Some id
+		|hd::tl -> loop tl
+	in loop (List.rev q) 
 
 (* Check if the given node already exists in the queue *)
 let q_exists q id = List.exists (fun (x, _, _) -> x = id) q 
@@ -44,14 +46,17 @@ let q_exists q id = List.exists (fun (x, _, _) -> x = id) q
 let q_mark_element q id = 
 	let rec loop q id acu = match q with
 		|[] -> acu 
-		|(id, father, false)::tl -> List.append (List.append acu (id, father, true)) tl
+		|(id, father, false)::tl -> List.append (List.append acu [(id, father, true)]) tl
 		|(id, _, true)::tl -> failwith "element already marked"
 		|hd::tl -> loop tl id (List.append acu [hd])
 	in loop q id []
 
 (* Build a path from a queue *)
 let q_build_path q = 
-	let q_id_first ((id, _, _)::tl) = id in
+	let q_id_first q = match q with
+		| [] -> []
+		| (id, _, _)::tail -> id 
+	in
 	let rec loop q id path = match q with
 		|[] -> path
 		|(id, father, _)::tl -> loop tl father (id, father)::path
@@ -83,8 +88,12 @@ let find_min_from_path gr path =
 	in loop tail path_label_first
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
-let tour_residual_graph gr source sink = 
-	let rec loop gr current_node q =  
+(*let tour_residual_graph gr source sink = 
+	let rec loop gr current_node q = match current_node with
+		| sink -> q
+		| (id, last_arc::[]) -> if then else loop gr (q_first_not_marked q) (q_add (last_neighbour, id, false))
+		| (id,outarc1::tail) -> loop gr 
+		|
 		ajouter tous les fils de current_node à la file 
 			si l'un des fils est le puits, on arrête la fct après l'avoir ajouté
 			si ils ne sont pas déjà dedans
@@ -94,7 +103,7 @@ let tour_residual_graph gr source sink =
 	extraire le path associé à la file finale
 	extraire le min du path
 	
-	renvoyer (path, min)
+	renvoyer (path, min)*)
 	
 	
 

@@ -9,6 +9,10 @@
 /usr/bin/ocamlc -c -o fordFulkersonAlgo.cmi fordFulkersonAlgo.mli # cached
 # Target: fordFulkersonAlgo.ml.depends, tags: { extension:ml, file:fordFulkersonAlgo.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep -modules fordFulkersonAlgo.ml > fordFulkersonAlgo.ml.depends
-# Target: fordFulkersonAlgo.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:fordFulkersonAlgo.cmo, file:fordFulkersonAlgo.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o fordFulkersonAlgo.cmo fordFulkersonAlgo.ml
-# Compilation successful.
++ /usr/bin/ocamldep -modules fordFulkersonAlgo.ml > fordFulkersonAlgo.ml.depends
+File "fordFulkersonAlgo.ml", line 88, characters 40-41:
+Warning 3: deprecated: ISO-Latin1 characters in identifiers
+File "fordFulkersonAlgo.ml", line 88, characters 41-42:
+Error: Illegal character (\160)
+Command exited with code 2.
+# Compilation unsuccessful.

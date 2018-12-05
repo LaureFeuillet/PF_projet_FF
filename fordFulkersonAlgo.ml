@@ -38,20 +38,20 @@ let rec q_first_not_marked q = match q with
 	|hd::tl -> q_first_not_marked tl
 
 (* Check if the given node already exists in the queue *)
-let q_exists q id = List.mem (id, _, _) q 
+let q_exists q id = List.exists (fun (x, _, _) -> x = id) q 
 
 (* Mark the element with the given id *)
 let q_mark_element q id = 
 	let rec loop q id acu = match q with
 		|[] -> acu 
-		|(id, _, false)::tl -> List.append (List.append acu (id, true)) tl
+		|(id, father, false)::tl -> List.append (List.append acu (id, father, true)) tl
 		|(id, _, true)::tl -> failwith "element already marked"
 		|hd::tl -> loop tl id (List.append acu [hd])
 	in loop q id []
 
 (* Build a path from a queue *)
 let q_build_path q = 
-	let q_id_first (id, _, _)::tl = id in
+	let q_id_first ((id, _, _)::tl) = id in
 	let rec loop q id path = match q with
 		|[] -> path
 		|(id, father, _)::tl -> loop tl father (id, father)::path
@@ -70,9 +70,33 @@ let residual_graph gr =
 			else f (add_arc (add_arc acu idD id flot) id idD (capa-flot)) id tail  	
 	in
 	v_fold gr f result
+
+(* Find the minimal cost of a path *)
+let find_min_from_path gr path = 
+	let path_label_first ((id1,id2)::tail) = find_arc gr id1 id2 in 
+	let rec loop remaining_path min = match remaining_path with
+		| [] -> min
+		| (idS, idD)::tl -> 
+			if (find_arc gr idS idD) < min 
+			then loop tl (find_arc gr idS idD) 
+			else loop tl min
+	in loop tail path_label_first
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
-let tour_graph gr = 
+let tour_residual_graph gr source sink = 
+	let rec loop gr current_node q =  
+		ajouter tous les fils de current_node à la file 
+			si l'un des fils est le puits, on arrête la fct après l'avoir ajouté
+			si ils ne sont pas déjà dedans
+		marquer current_node
+
+	in loop gr source []
+	extraire le path associé à la file finale
+	extraire le min du path
+	
+	renvoyer (path, min)
+	
+	
 
 (************************************)
 (* ------------ UPDATE ------------ *)
@@ -84,3 +108,4 @@ let update_graph gr path cost = assert false
 (************************************)
 (* -------- FORD-FULKERSON -------- *)
 (************************************)
+

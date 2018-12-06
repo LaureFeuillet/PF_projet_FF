@@ -44,12 +44,12 @@ let q_exists q id = List.exists (fun (x, _, _) -> x = id) q
 
 (* Mark the element with the given id *)
 let q_mark_element q id = 
-	let rec loop q id acu = match q with
-		|[] -> acu 
-		|(id, father, false)::tl -> List.append (List.append acu [(id, father, true)]) tl
+	let rec loop q acu = match q with
+		|[] -> failwith "element not found in the queue"
+		|(id, father, false)::tl -> List.append (List.rev tl) ((id, father, true)::acu)
 		|(id, _, true)::tl -> failwith "element already marked"
-		|hd::tl -> loop tl id (List.append acu [hd])
-	in loop q id []
+		|hd::tl -> loop tl (hd::acu)
+	in loop (List.rev q) id []
 
 (* Build a path from a queue *)
 let q_build_path q = 
@@ -91,11 +91,11 @@ let find_min_from_path gr path =
 	in loop path path_label_first
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
-(*let tour_residual_graph gr source sink = 
+let tour_residual_graph gr source sink = 
 	let rec loop gr current_node q = match current_node with
 		| sink -> q
 		| (id, last_arc::[]) -> if then else loop gr (q_first_not_marked q) (q_add (last_neighbour, id, false))
-		| (id,outarc1::tail) -> loop gr 
+		| (id,outarc1::tail) -> loop gr
 		|
 		ajouter tous les fils de current_node à la file 
 			si l'un des fils est le puits, on arrête la fct après l'avoir ajouté
@@ -106,7 +106,7 @@ let find_min_from_path gr path =
 	extraire le path associé à la file finale
 	extraire le min du path
 	
-	renvoyer (path, min)*)
+	renvoyer (path, min)
 	
 	
 

@@ -49,7 +49,7 @@ let q_mark_element q id =
 		|(id, father, false)::tl -> List.append (List.rev tl) ((id, father, true)::acu)
 		|(id, _, true)::tl -> failwith "element already marked"
 		|hd::tl -> loop tl (hd::acu)
-	in loop (List.rev q) id []
+	in loop (List.rev q) []
 
 (* Build a path from a queue *)
 let q_build_path q = 
@@ -80,10 +80,10 @@ let residual_graph gr =
 let find_min_from_path gr path = 
 	let path_label_first = match path with
 		|[] -> None
-		|(id1,id2)::tail -> find_arc gr id1 id2
+		|(id1,id2)::tail -> Some (find_arc gr id1 id2)
 	in 
 	let rec loop remaining_path min = match remaining_path with
-		| [] -> Some min
+		| [] -> min
 		| (idS, idD)::tl -> 
 			if (find_arc gr idS idD) < min 
 			then loop tl (find_arc gr idS idD) 

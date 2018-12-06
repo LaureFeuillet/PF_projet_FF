@@ -49,7 +49,7 @@ let q_mark_element q id =
 		|(id, father, false)::tl -> List.append (List.rev tl) ((id, father, true)::acu)
 		|(id, _, true)::tl -> failwith "element already marked"
 		|hd::tl -> loop tl (hd::acu)
-	in loop (List.rev q) id []
+	in loop (List.rev q) []
 
 (* Build a path from a queue *)
 let q_build_path q = 
@@ -83,7 +83,7 @@ let find_min_from_path gr path =
 		|(id1,id2)::tail -> find_arc gr id1 id2
 	in 
 	let rec loop remaining_path min = match remaining_path with
-		| [] -> Some min
+		| [] -> min
 		| (idS, idD)::tl -> 
 			if (find_arc gr idS idD) < min 
 			then loop tl (find_arc gr idS idD) 
@@ -92,17 +92,19 @@ let find_min_from_path gr path =
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
 let tour_residual_graph gr source sink = 
-	let rec loop gr current_node q = match current_node with
-		| sink -> q
-		| (id, last_arc::[]) -> if then else loop gr (q_first_not_marked q) (q_add (last_neighbour, id, false))
-		| (id,outarc1::tail) -> loop gr
+	(* Here we build the queue of the course in width. *)
+	let rec loop current_node q = match current_node with
+		| (sink, _) -> 
+		| (id, []) -> if 
+		| (id, ()::tail) -> if then else loop (q_first_not_marked q) (q_add (last_neighbour, id, false))
+		| (id, arc::tail) -> loop (id, tail) 
 		|
 		ajouter tous les fils de current_node à la file 
 			si l'un des fils est le puits, on arrête la fct après l'avoir ajouté
 			si ils ne sont pas déjà dedans
 		marquer current_node
 
-	in loop gr source []
+	in loop source []
 	extraire le path associé à la file finale
 	extraire le min du path
 	

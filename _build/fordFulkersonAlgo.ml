@@ -8,7 +8,6 @@ type path = (id*id) list
 
 type queue = (id*id*bool) list
 
-
 (************************************)
 (* ----------- INITIALIZE --------- *)
 (************************************)
@@ -35,7 +34,7 @@ let q_add q e = e::q
 let q_first_not_marked q = 
 	let rec loop q = match q with 
 		|[] -> None
-		|(id, _,false)::tl -> id
+		|(id, _,false)::tl -> Some id
 		|hd::tl -> loop tl
 	in loop (List.rev q) 
 
@@ -54,13 +53,23 @@ let q_mark_element q id =
 (* Build a path from a queue *)
 let q_build_path q = 
 	let q_id_first q = match q with
-		| [] -> []
-		| (id, _, _)::tail -> id 
+		| [] -> None
+		| (id, _, _)::_ -> Some id 
 	in
-	let rec loop q id path = match q with
-		|[] -> path
-		|(id, father, _)::tl -> loop tl father ((id, father)::path)
-		|(_, _, _)::tl -> loop tl id path
+	(*let rec loop q id path = match (q, id) with	
+		|([], Some _) -> path
+		|(_, None) -> path
+		|((id, father, _)::tl, Some idbis) -> loop tl father ((id, father)::path)
+		|(_::tl, Some idbis) -> loop tl id path
+	in loop q (q_id_first q) []*)
+
+	let rec loop q id path = match id with
+		|None -> []
+		|Some idBis -> (match q with
+			|[] -> path
+			|(idBis, father, _)::tl -> loop tl (Some father) ((idBis, father)::path)
+			|_::tl -> loop tl id path
+		)
 	in loop q (q_id_first q) []
 
 (* Construct a residual graph from a capacity graph *)
@@ -108,9 +117,9 @@ let tour_residual_graph gr source sink =
 				then (loop_queue current_node tail q) 
 				else (loop_queue current_node tail ((idD, current_node, false)::q)) 
 	in 
-	let qq = loop_queue source (out_arcs gr source) [] 
+	let queue = loop_queue source (out_arcs gr source) [] 
 	in
-	let path = q_build_path qq
+	let path = q_build_path queue
 	in
 	let min = find_min_from_path gr path 
 	(* Return (path, min) *)
@@ -126,4 +135,8 @@ let update_graph gr path cost = assert false
 (************************************)
 (* -------- FORD-FULKERSON -------- *)
 (************************************)
+
+
+
+
 

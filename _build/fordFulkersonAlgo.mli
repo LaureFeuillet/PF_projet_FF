@@ -20,7 +20,7 @@ val graph_without_arcs: fc graph -> 'a graph
 val residual_graph: fc graph -> int graph
 
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
-val tour_graph: int  graph -> path * int
+val tour_residual_graph: int  graph -> id -> id -> path * int option
 
 (**************  MISE A JOUR  **************)
 (* Update a flow graph according to an incrementation path and its minimal cost *)

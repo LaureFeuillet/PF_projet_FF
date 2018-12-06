@@ -14,7 +14,7 @@ type queue = (id*id*bool) list
 (************************************)
 
 (* Construct a flow graph from a given capacity graph *)
-let init_graph gr = Graph.map gr (fun capacity -> {flow = 0; capacity})
+let init_graph gr = map gr (fun capacity -> {flow = 0; capacity})
 
 (************************************)
 (* ------------- TOUR ------------- *)
@@ -35,7 +35,7 @@ let q_add q e = e::q
 let q_first_not_marked q = 
 	let rec loop q = match q with 
 		|[] -> None
-		|(id, _,false)::tl -> Some id
+		|(id, _,false)::tl -> id
 		|hd::tl -> loop tl
 	in loop (List.rev q) 
 
@@ -80,7 +80,7 @@ let residual_graph gr =
 let find_min_from_path gr path = 
 	let path_label_first = match path with
 		|[] -> None
-		|(id1,id2)::tail -> Some (find_arc gr id1 id2)
+		|(idS,idD)::tail -> find_arc gr idS idD
 	in 
 	let rec loop remaining_path min = match remaining_path with
 		| [] -> min
@@ -92,23 +92,29 @@ let find_min_from_path gr path =
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
 let tour_residual_graph gr source sink = 
-	let rec loop gr current_node q = match current_node with
-		| sink -> q
-		| (id, last_arc::[]) -> if then else loop gr (q_first_not_marked q) (q_add (last_neighbour, id, false))
-		| (id,outarc1::tail) -> loop gr
-		|
-		ajouter tous les fils de current_node à la file 
-			si l'un des fils est le puits, on arrête la fct après l'avoir ajouté
-			si ils ne sont pas déjà dedans
-		marquer current_node
-
-	in loop gr source []
-	extraire le path associé à la file finale
-	extraire le min du path
-	
-	renvoyer (path, min)
-	
-	
+    (* Here we build the queue of the course in width. *)
+    let rec loop_queue current_node current_outarcs q = 
+		match (current_node, current_outarcs) with
+		    (* We just found the sink ! We add it to the q and finish loop_queue. *)
+		    | (_,((sink, _)::tail)) -> ((sink, current_node, false)::q)
+		    (* There are no more arcs, we iterate on the next unmarked node of the queue. *)
+		    | (_,[]) -> (match (q_first_not_marked q) with
+				|None -> q 
+				|Some w -> loop_queue w (out_arcs gr w) q
+			)
+		    (* There still are some arcs so : if the destination is in the queue, we dont add it and check the next destination, else we put it in the queue unmarked and we iterate. *)
+		    | (_,((idD, _)::tail)) -> 
+				if (q_exists q idD) 
+				then (loop_queue current_node tail q) 
+				else (loop_queue current_node tail ((idD, current_node, false)::q)) 
+	in 
+	let qq = loop_queue source (out_arcs gr source) [] 
+	in
+	let path = q_build_path qq
+	in
+	let min = find_min_from_path gr path 
+	(* Return (path, min) *)
+	in (path, min)
 
 (************************************)
 (* ------------ UPDATE ------------ *)

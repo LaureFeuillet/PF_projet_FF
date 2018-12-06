@@ -59,7 +59,7 @@ let q_build_path q =
 	in
 	let rec loop q id path = match q with
 		|[] -> path
-		|(id, father, _)::tl -> loop tl father (id, father)::path
+		|(id, father, _)::tl -> loop tl father ((id, father)::path)
 		|(_, _, _)::tl -> loop tl id path
 	in loop q (q_id_first q) []
 
@@ -78,14 +78,17 @@ let residual_graph gr =
 
 (* Find the minimal cost of a path *)
 let find_min_from_path gr path = 
-	let path_label_first ((id1,id2)::tail) = find_arc gr id1 id2 in 
+	let path_label_first = match path with
+		|[] -> None
+		|(id1,id2)::tail -> find_arc gr id1 id2
+	in 
 	let rec loop remaining_path min = match remaining_path with
-		| [] -> min
+		| [] -> Some min
 		| (idS, idD)::tl -> 
 			if (find_arc gr idS idD) < min 
 			then loop tl (find_arc gr idS idD) 
 			else loop tl min
-	in loop tail path_label_first
+	in loop path path_label_first
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
 (*let tour_residual_graph gr source sink = 

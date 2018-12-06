@@ -12,8 +12,9 @@
 # Target: fordFulkersonAlgo.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:fordFulkersonAlgo.cmo, file:fordFulkersonAlgo.ml, implem, ocaml, quiet }
 /usr/bin/ocamlc -c -o fordFulkersonAlgo.cmo fordFulkersonAlgo.ml
 + /usr/bin/ocamlc -c -o fordFulkersonAlgo.cmo fordFulkersonAlgo.ml
-File "fordFulkersonAlgo.ml", line 62, characters 41-53:
-Error: This expression has type 'a * 'b
-       but an expression was expected of type 'c list
+File "fordFulkersonAlgo.ml", line 1:
+Error: The implementation fordFulkersonAlgo.ml
+       does not match the interface fordFulkersonAlgo.cmi:
+       The value `tour_graph' is required but not provided
 Command exited with code 2.
 # Compilation unsuccessful.

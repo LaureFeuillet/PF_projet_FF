@@ -20,6 +20,7 @@ let init_graph gr = map gr (fun capacity -> {flow = 0; capacity})
 (************************************)
 
 (* Return the same graph but without arcs *)
+(* 'a graph -> 'a graph *)
 let graph_without_arcs gr = 
 	let result = empty_graph in
 	let f acu id out_arcs = add_node acu id in
@@ -28,9 +29,11 @@ let graph_without_arcs gr =
 (* ----- QUEUE ----- *)
 
 (* Add an element to the queue *)
+(* queue -> queue *)
 let q_add q e = e::q
 
 (* Return the id of the first element not marked in the queue *)
+(* queue -> id option *)
 let q_first_not_marked q = 
 	let rec loop q = match q with 
 		|[] -> None
@@ -39,9 +42,11 @@ let q_first_not_marked q =
 	in loop (List.rev q) 
 
 (* Check if the given node already exists in the queue *)
+(* queue -> id -> bool *)
 let q_exists q id = List.exists (fun (x, _, _) -> x = id) q 
 
 (* Mark the element with the given id *)
+(* queue -> id -> queue *)
 let q_mark_element q id = 
 	let rec loop q acu = match q with
 		|[] -> failwith "element not found in the queue"
@@ -51,18 +56,12 @@ let q_mark_element q id =
 	in loop (List.rev q) []
 
 (* Build a path from a queue *)
+(* q -> path *)
 let q_build_path q = 
 	let q_id_first q = match q with
 		| [] -> None
 		| (id, _, _)::_ -> Some id 
 	in
-	(*let rec loop q id path = match (q, id) with	
-		|([], Some _) -> path
-		|(_, None) -> path
-		|((id, father, _)::tl, Some idbis) -> loop tl father ((id, father)::path)
-		|(_::tl, Some idbis) -> loop tl id path
-	in loop q (q_id_first q) []*)
-
 	let rec loop q id path = match id with
 		|None -> []
 		|Some idBis -> (match q with
@@ -73,6 +72,7 @@ let q_build_path q =
 	in loop q (q_id_first q) []
 
 (* Construct a residual graph from a capacity graph *)
+(* fc graph -> int graph *)
 let residual_graph gr = 
 	let result = graph_without_arcs gr in
 	let rec f acu id out_arcs = match out_arcs with
@@ -86,6 +86,7 @@ let residual_graph gr =
 	v_fold gr f result
 
 (* Find the minimal cost of a path *)
+(* 'a graph -> path -> int option *)
 let find_min_from_path gr path = 
 	let path_label_first = match path with
 		|[] -> None
@@ -94,12 +95,13 @@ let find_min_from_path gr path =
 	let rec loop remaining_path min = match remaining_path with
 		| [] -> min
 		| (idS, idD)::tl -> 
-			if (find_arc gr idS idD) < min 
-			then loop tl (find_arc gr idS idD) 
+			if find_arc gr idS idD < min 
+			then loop tl (find_arc gr idS idD)
 			else loop tl min
 	in loop path path_label_first
 	
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
+(* 'a graph -> id -> id -> path * int option *)
 let tour_residual_graph gr source sink = 
     (* Here we build the queue of the course in width. *)
     let rec loop_queue current_node current_outarcs q = 
@@ -131,12 +133,33 @@ let tour_residual_graph gr source sink =
 
 (* Update a flow graph according to an incrementation path and its minimal cost *)
 let update_graph gr path cost = assert false
+(*	Rappel : path = (id * id) List 
+ * 	Début : result = gr
+ *	Parcourir path :
+ *		Si path = [],
+ *		Alors on renvoie result.
+ *		Sinon (path = ((idS, idD)::tl) on add_arc result idS idD ((find_arc idS idD) + cost)
+ * 		et on intère sur la suite du path avec tl. 
+ *	!!! find_arc renvoie un option, donc il faut surement faire des trucs en plus !!!
+ *)
 
 (************************************)
 (* -------- FORD-FULKERSON -------- *)
 (************************************)
 
-
+(* int graph -> source -> sink -> (int*int) graph *)
+(*	
+ * 	Rappel : path = (id * id) List 
+ *			 min = int option
+ * 	Créer le graphe de flot 
+ * 	Boucle : graphe de flot
+ *		Créer le graphe décart du graphe de flot
+ *		Parcourir ce graphe d'écart pour obtenir (path, min)
+ *			Si min = None
+ *			Alors l'algo est fini, il faut renvoyer le graphe de flot actuel
+ *			Sinon ça veut dire qu'on peut améliorer les flots, donc 
+ *			on rappelle la boucle sur update_graph current_flow_graph path min
+ *)
 
 
 

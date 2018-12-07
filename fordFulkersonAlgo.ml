@@ -50,8 +50,8 @@ let q_exists q id = List.exists (fun (x, _, _) -> x = id) q
 let q_mark_element q id = 
 	let rec loop q acu = match q with
 		|[] -> failwith "element not found in the queue"
-		|(id, father, false)::tl -> List.append (List.rev tl) ((id, father, true)::acu)
-		|(id, _, true)::tl -> failwith "element already marked"
+		|(node, father, false)::tl when node = id -> List.append (List.rev tl) ((node, father, true)::acu)
+		|(node, _, true)::tl when node = id -> failwith "element already marked"
 		|hd::tl -> loop tl (hd::acu)
 	in loop (List.rev q) []
 
@@ -64,9 +64,9 @@ let q_build_path q =
 	in
 	let rec loop q id path = match id with
 		|None -> []
-		|Some idBis -> (match q with
+		|Some id_without_option -> (match q with
 			|[] -> path
-			|(idBis, father, _)::tl -> loop tl (Some father) ((idBis, father)::path)
+			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((id_without_option, father)::path)
 			|_::tl -> loop tl id path
 		)
 	in loop q (q_id_first q) []
@@ -107,7 +107,7 @@ let tour_residual_graph gr source sink =
     let rec loop_queue current_node current_outarcs q = 
 		match (current_node, current_outarcs) with
 		    (* We just found the sink ! We add it to the q and finish loop_queue. *)
-		    | (_,((sink, _)::tail)) -> ((sink, current_node, false)::q)
+		    | (_,((node, _)::tail)) when node = sink -> ((sink, current_node, false)::q)
 		    (* There are no more arcs, we iterate on the next unmarked node of the queue. *)
 		    | (_,[]) -> (match (q_first_not_marked q) with
 				|None -> q 
@@ -132,7 +132,11 @@ let tour_residual_graph gr source sink =
 (************************************)
 
 (* Update a flow graph according to an incrementation path and its minimal cost *)
-let update_graph gr path cost = assert false
+let update_graph gr path cost = 
+	let result = gr in
+	let rec loop path 
+		
+	in
 (*	Rappel : path = (id * id) List 
  * 	Début : result = gr
  *	Parcourir path :

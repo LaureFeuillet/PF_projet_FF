@@ -9,19 +9,8 @@
 /usr/bin/ocamlc -c -o fordFulkersonAlgo.cmi fordFulkersonAlgo.mli # cached
 # Target: fordFulkersonAlgo.ml.depends, tags: { extension:ml, file:fordFulkersonAlgo.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep -modules fordFulkersonAlgo.ml > fordFulkersonAlgo.ml.depends
-# Target: fordFulkersonAlgo.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:fordFulkersonAlgo.cmo, file:fordFulkersonAlgo.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o fordFulkersonAlgo.cmo fordFulkersonAlgo.ml
-+ /usr/bin/ocamlc -c -o fordFulkersonAlgo.cmo fordFulkersonAlgo.ml
-File "fordFulkersonAlgo.ml", line 50, characters 3-9:
-Warning 11: this match case is unused.
-File "fordFulkersonAlgo.ml", line 71, characters 4-9:
-Warning 11: this match case is unused.
-File "fordFulkersonAlgo.ml", line 115, characters 8-28:
-Warning 11: this match case is unused.
-# Target: graph.ml.depends, tags: { extension:ml, file:graph.ml, ocaml, ocamldep, quiet }
-/usr/bin/ocamldep -modules graph.ml > graph.ml.depends # cached
-# Target: graph.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:graph.cmo, file:graph.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o graph.cmo graph.ml # cached
-# Target: fordFulkersonAlgo.byte, tags: { byte, dont_link_with, extension:byte, file:fordFulkersonAlgo.byte, link, ocaml, program, quiet }
-/usr/bin/ocamlc graph.cmo fordFulkersonAlgo.cmo -o fordFulkersonAlgo.byte
-# Compilation successful.
++ /usr/bin/ocamldep -modules fordFulkersonAlgo.ml > fordFulkersonAlgo.ml.depends
+File "fordFulkersonAlgo.ml", line 139, characters 1-3:
+Error: Syntax error
+Command exited with code 2.
+# Compilation unsuccessful.

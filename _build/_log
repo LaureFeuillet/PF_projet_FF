@@ -21,14 +21,14 @@
 /usr/bin/ocamldep -modules graph.ml > graph.ml.depends # cached
 # Target: graph.cmx, tags: { compile, extension:cmx, extension:ml, file:graph.cmx, file:graph.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt -c -o graph.cmx graph.ml # cached
+# Target: fordFulkersonAlgo.cmx, tags: { compile, extension:cmx, extension:ml, file:fordFulkersonAlgo.cmx, file:fordFulkersonAlgo.ml, implem, native, ocaml, quiet }
+/usr/bin/ocamlopt -c -o fordFulkersonAlgo.cmx fordFulkersonAlgo.ml # cached
 # Target: gfile.ml.depends, tags: { extension:ml, file:gfile.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep -modules gfile.ml > gfile.ml.depends # cached
 # Target: gfile.cmx, tags: { compile, extension:cmx, extension:ml, file:gfile.cmx, file:gfile.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt -c -o gfile.cmx gfile.ml # cached
-# Target: fordFulkersonAlgo.cmx, tags: { compile, extension:cmx, extension:ml, file:fordFulkersonAlgo.cmx, file:fordFulkersonAlgo.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt -c -o fordFulkersonAlgo.cmx fordFulkersonAlgo.ml
 # Target: ftest.cmx, tags: { compile, extension:cmx, extension:ml, file:ftest.cmx, file:ftest.ml, implem, native, ocaml, quiet }
-/usr/bin/ocamlopt -c -o ftest.cmx ftest.ml
+/usr/bin/ocamlopt -c -o ftest.cmx ftest.ml # cached
 # Target: ftest.native, tags: { dont_link_with, extension:native, file:ftest.native, link, native, ocaml, program, quiet }
-/usr/bin/ocamlopt graph.cmx fordFulkersonAlgo.cmx gfile.cmx ftest.cmx -o ftest.native
+/usr/bin/ocamlopt graph.cmx fordFulkersonAlgo.cmx gfile.cmx ftest.cmx -o ftest.native # cached
 # Compilation successful.

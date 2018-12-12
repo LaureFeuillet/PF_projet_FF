@@ -77,10 +77,10 @@ let q_build_path q source =
 		|None -> []
 		|Some id_without_option -> (match q with
 			(* We reached the end of the queue, we can return the builded path. *)
-			|[] -> path
+			|[] -> List.rev path
 			(*  *)
-			|(node1, node2, _)::tl when ((node1 = source) && (node2 = source)) -> path
-			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((id_without_option, father)::path)
+			|(node1, node2, _)::tl when ((node1 = source) && (node2 = source)) -> List.rev path
+			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((father, id_without_option)::path)
 			|_::tl -> loop tl id path
 		)
 	in loop q q_id_first []
@@ -144,7 +144,7 @@ let tour_residual_graph gr source sink =
 	let path = Printf.printf "8-%!"; q_build_path q source
 	in
 	(* Finding the incrementation value on the path. *)
-	let min = Printf.printf "9-%!"; find_min_from_path gr path 
+	let min = Printf.printf "9-%!"; find_min_from_path gr path
 	(* Return (path, min) *)
 	in (path, min)
 
@@ -190,7 +190,7 @@ let ford_fulkerson gr source sink =
 	let init_fc_gr = Printf.printf "Initialisation  -  %!"; init_graph gr
 	in
 	(* Loop on (path, min). *)
-	let rec loop_ff fc_gr = Printf.printf "Loop  -  "; match tour_residual_graph (residual_graph fc_gr) source sink with
+	let rec loop_ff fc_gr = Printf.printf "Loop  -  "; match (tour_residual_graph (residual_graph fc_gr) source sink) with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
 		|([], None) ->  Printf.printf "Fin de FF  -  %!"; fc_gr  
 		|(smthg, None) -> Printf.printf "Fin de FF  -  %!"; fc_gr

@@ -118,7 +118,7 @@ let tour_residual_graph gr source sink =
 		    (* There are no more arcs from current_node, we iterate on the next unmarked node of the queue. *)
 		    | (_,[]) -> (match (q_first_not_marked q) with
 				(* All elements of the queue are marked, there is no path from source to sink. *)
-				|None -> q
+				|None -> []
 				(* Just an iteration on the next available (not marked) element of the queue. *)
 				|Some w -> loop_queue w (out_arcs gr w) q
 			)
@@ -185,7 +185,7 @@ let ford_fulkerson gr source sink =
 	(* Loop on (path, min). *)
 	let rec loop_ff fc_gr = match tour_residual_graph (residual_graph fc_gr) source sink with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
-		|(path, None) -> fc_gr  
+		|([], None) -> fc_gr  
 		(* We can improve the flow repartition, we iterate on the updated graph. *)
 		|(path, Some cost) -> loop_ff (update_graph fc_gr path cost)
 	in 

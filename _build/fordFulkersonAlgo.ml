@@ -29,6 +29,12 @@ let graph_without_arcs gr =
 
 (* ----- QUEUE ----- *)
 
+let q_print q =
+	let rec loop q = match q with
+		|[] -> ()
+		|hd::tl -> Printf.printf " %d |" hd
+	in loop (List.rev q)
+
 (* Add an element to the queue. *)
 (* queue -> queue *)
 let q_add q e = e::q
@@ -53,14 +59,14 @@ let q_mark_element q id =
 		|[] -> failwith "element not found in the queue"
 		|(node, _, true)::tl when node = id -> failwith "element already marked"
 		(* We just found the element to mark, let's do this ! *)
-		|(node, father, false)::tl when node = id -> List.append (List.rev tl) ((node, father, true)::acu)
+		|(node, father, false)::tl when node = id -> Printf.printf "a-%!"; List.append (List.rev tl) ((node, father, true)::acu)
 		(* We have to iterate to find the element to mark. *)
-		|hd::tl -> loop tl (hd::acu)
+		|hd::tl -> Printf.printf "b-%!"; loop tl (hd::acu)
 	in loop (List.rev q) []
 
 (* Build a path from a queue *)
 (* q -> path *)
-let q_build_path q = 
+let q_build_path q source = 
 	(* Last element entered in the queue, supposed to be the sink, needed to call the loop. *)
 	let q_id_first = match q with
 		| [] -> None
@@ -73,6 +79,7 @@ let q_build_path q =
 			(* We reached the end of the queue, we can return the builded path. *)
 			|[] -> path
 			(*  *)
+			|(node1, node2, _)::tl when ((node1 = source) && (node2 = source)) -> path
 			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((id_without_option, father)::path)
 			|_::tl -> loop tl id path
 		)
@@ -116,11 +123,11 @@ let tour_residual_graph gr source sink =
 		    (* We just found the sink ! We add it to the queue and finish loop_queue. *)
 		    | (_,((node, _)::tail)) when node = sink -> Printf.printf "2-%!"; ((sink, current_node, false)::q)
 		    (* There are no more arcs from current_node, we iterate on the next unmarked node of the queue. *)
-		    | (_,[]) -> Printf.printf "3-%!"; (match (q_first_not_marked q) with
+		    | (_,[]) -> (match (q_first_not_marked (q_mark_element q current_node)) with
 				(* All elements of the queue are marked, there is no path from source to sink. *)
 				|None -> Printf.printf "4-%!"; []
 				(* Just an iteration on the next available (not marked) element of the queue. *)
-				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) q
+				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) (q_mark_element q current_node)
 			)
 		    (* There still are some arcs from the current_node. *)
 		    | (_,((idD, _)::tail)) -> Printf.printf "6-%!"; 
@@ -131,10 +138,10 @@ let tour_residual_graph gr source sink =
 				else (loop_queue current_node tail ((idD, current_node, false)::q)) 
 	in 
 	(* Calling the loop to build the queue from source to sink. *)
-	let q = Printf.printf "7-%!"; loop_queue source (out_arcs gr source) [] 
+	let q = Printf.printf "7-%!"; loop_queue source (out_arcs gr source) [(source, source, false)] 
 	in
 	(* Building the associated path of the queue.  *)
-	let path = Printf.printf "8-%!"; q_build_path q
+	let path = Printf.printf "8-%!"; q_build_path q source
 	in
 	(* Finding the incrementation value on the path. *)
 	let min = Printf.printf "9-%!"; find_min_from_path gr path 

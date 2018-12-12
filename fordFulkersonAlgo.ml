@@ -77,10 +77,10 @@ let q_build_path q source =
 		|None -> []
 		|Some id_without_option -> (match q with
 			(* We reached the end of the queue, we can return the builded path. *)
-			|[] -> path
+			|[] -> List.rev path
 			(*  *)
-			|(node1, node2, _)::tl when ((node1 = source) && (node2 = source)) -> path
-			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((id_without_option, father)::path)
+			|(node1, node2, _)::tl when ((node1 = source) && (node2 = source)) -> List.rev path
+			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((father, id_without_option)::path)
 			|_::tl -> loop tl id path
 		)
 	in loop q q_id_first []
@@ -104,13 +104,13 @@ let residual_graph gr =
 let find_min_from_path gr path = 
 	let path_label_first = match path with
 		|[] -> None
-		|(idS,idD)::tail -> find_arc gr idD idS
+		|(idS,idD)::tail -> find_arc gr idS idD
 	in 
 	let rec loop remaining_path min = match remaining_path with
 		| [] -> min
 		| (idS, idD)::tl -> 
 			if find_arc gr idS idD < min 
-			then loop tl (find_arc gr idD idS)
+			then loop tl (find_arc gr idS idD)
 			else loop tl min
 	in loop path path_label_first
 

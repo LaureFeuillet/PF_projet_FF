@@ -122,11 +122,11 @@ let tour_residual_graph gr source sink =
 		    (* We just found the sink ! We add it to the queue and finish loop_queue. *)
 		    | (_,((node, _)::tail)) when node = sink -> Printf.printf "2-%!"; ((sink, current_node, false)::q)
 		    (* There are no more arcs from current_node, we iterate on the next unmarked node of the queue. *)
-		    | (_,[]) -> Printf.printf "3-%!"; (match (q_first_not_marked q) with
+		    | (_,[]) -> (match (q_first_not_marked (q_mark_element q current_node)) with
 				(* All elements of the queue are marked, there is no path from source to sink. *)
 				|None -> Printf.printf "4-%!"; []
 				(* Just an iteration on the next available (not marked) element of the queue. *)
-				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) q
+				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) (q_mark_element q current_node)
 			)
 		    (* There still are some arcs from the current_node. *)
 		    | (_,((idD, _)::tail)) -> Printf.printf "6-%!"; 

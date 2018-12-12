@@ -104,13 +104,13 @@ let residual_graph gr =
 let find_min_from_path gr path = 
 	let path_label_first = match path with
 		|[] -> None
-		|(idS,idD)::tail -> find_arc gr idS idD
+		|(idS,idD)::tail -> find_arc gr idD idS
 	in 
 	let rec loop remaining_path min = match remaining_path with
 		| [] -> min
 		| (idS, idD)::tl -> 
 			if find_arc gr idS idD < min 
-			then loop tl (find_arc gr idS idD)
+			then loop tl (find_arc gr idD idS)
 			else loop tl min
 	in loop path path_label_first
 
@@ -144,7 +144,7 @@ let tour_residual_graph gr source sink =
 	let path = Printf.printf "8-%!"; q_build_path q source
 	in
 	(* Finding the incrementation value on the path. *)
-	let min = Printf.printf "9-%!"; find_min_from_path gr path 
+	let min = Printf.printf "9-%!"; find_min_from_path gr path
 	(* Return (path, min) *)
 	in (path, min)
 
@@ -190,7 +190,7 @@ let ford_fulkerson gr source sink =
 	let init_fc_gr = Printf.printf "Initialisation  -  %!"; init_graph gr
 	in
 	(* Loop on (path, min). *)
-	let rec loop_ff fc_gr = Printf.printf "Loop  -  "; match tour_residual_graph (residual_graph fc_gr) source sink with
+	let rec loop_ff fc_gr = Printf.printf "Loop  -  "; match (tour_residual_graph (residual_graph fc_gr) source sink) with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
 		|([], None) ->  Printf.printf "Fin de FF  -  %!"; fc_gr  
 		|(smthg, None) -> Printf.printf "Fin de FF  -  %!"; fc_gr

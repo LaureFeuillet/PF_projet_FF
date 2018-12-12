@@ -186,6 +186,7 @@ let ford_fulkerson gr source sink =
 	let rec loop_ff fc_gr = match tour_residual_graph (residual_graph fc_gr) source sink with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
 		|([], None) -> fc_gr  
+		|(smthg, None) -> fc_gr
 		(* We can improve the flow repartition, we iterate on the updated graph. *)
 		|(path, Some cost) -> loop_ff (update_graph fc_gr path cost)
 	in 

@@ -30,5 +30,5 @@
 # Target: ftest.cmx, tags: { compile, extension:cmx, extension:ml, file:ftest.cmx, file:ftest.ml, implem, native, ocaml, quiet }
 /usr/bin/ocamlopt -c -o ftest.cmx ftest.ml # cached
 # Target: ftest.native, tags: { dont_link_with, extension:native, file:ftest.native, link, native, ocaml, program, quiet }
-/usr/bin/ocamlopt graph.cmx fordFulkersonAlgo.cmx gfile.cmx ftest.cmx -o ftest.native # cached
+/usr/bin/ocamlopt graph.cmx fordFulkersonAlgo.cmx gfile.cmx ftest.cmx -o ftest.native
 # Compilation successful.

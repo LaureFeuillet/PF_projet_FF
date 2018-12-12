@@ -29,6 +29,12 @@ let graph_without_arcs gr =
 
 (* ----- QUEUE ----- *)
 
+let q_print q =
+	let rec loop q = match q with
+		|[] -> ()
+		|hd::tl -> Printf.printf " %d |" hd
+	in loop (List.rev q)
+
 (* Add an element to the queue. *)
 (* queue -> queue *)
 let q_add q e = e::q
@@ -111,19 +117,19 @@ let find_min_from_path gr path =
 (* 'a graph -> id -> id -> path * int option *)
 let tour_residual_graph gr source sink = 
     (* Here we build the queue of the course in width. *)
-    let rec loop_queue current_node current_outarcs q = 
+    let rec loop_queue current_node current_outarcs q = Printf.printf "1-%!"; 
 		match (current_node, current_outarcs) with
 		    (* We just found the sink ! We add it to the queue and finish loop_queue. *)
-		    | (_,((node, _)::tail)) when node = sink -> ((sink, current_node, false)::q)
+		    | (_,((node, _)::tail)) when node = sink -> Printf.printf "2-%!"; ((sink, current_node, false)::q)
 		    (* There are no more arcs from current_node, we iterate on the next unmarked node of the queue. *)
-		    | (_,[]) -> (match (q_first_not_marked q) with
+		    | (_,[]) -> Printf.printf "3-%!"; (match (q_first_not_marked q) with
 				(* All elements of the queue are marked, there is no path from source to sink. *)
-				|None -> []
+				|None -> Printf.printf "4-%!"; []
 				(* Just an iteration on the next available (not marked) element of the queue. *)
-				|Some w -> loop_queue w (out_arcs gr w) q
+				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) q
 			)
 		    (* There still are some arcs from the current_node. *)
-		    | (_,((idD, _)::tail)) -> 
+		    | (_,((idD, _)::tail)) -> Printf.printf "6-%!"; 
 				(* The destination is already in the queue, we dont add it and check the next destination. *)
 				if (q_exists q idD) 
 				then (loop_queue current_node tail q) 
@@ -131,13 +137,13 @@ let tour_residual_graph gr source sink =
 				else (loop_queue current_node tail ((idD, current_node, false)::q)) 
 	in 
 	(* Calling the loop to build the queue from source to sink. *)
-	let q = loop_queue source (out_arcs gr source) [] 
+	let q = Printf.printf "7-%!"; loop_queue source (out_arcs gr source) [] 
 	in
 	(* Building the associated path of the queue.  *)
-	let path = q_build_path q
+	let path = Printf.printf "8-%!"; q_build_path q
 	in
 	(* Finding the incrementation value on the path. *)
-	let min = find_min_from_path gr path 
+	let min = Printf.printf "9-%!"; find_min_from_path gr path 
 	(* Return (path, min) *)
 	in (path, min)
 
@@ -180,18 +186,20 @@ let update_graph gr path cost =
 (* string graph -> id -> id -> string graph *)
 let ford_fulkerson gr source sink = 
 	(* Construct a flow graph from the given capacity graph. *)
-	let init_fc_gr = init_graph gr 
+	let init_fc_gr = Printf.printf "Initialisation  -  %!"; init_graph gr
 	in
 	(* Loop on (path, min). *)
-	let rec loop_ff fc_gr = match tour_residual_graph (residual_graph fc_gr) source sink with
+	let rec loop_ff fc_gr = Printf.printf "Loop  -  "; match tour_residual_graph (residual_graph fc_gr) source sink with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
-		|([], None) -> fc_gr  
-		|(smthg, None) -> fc_gr
+		|([], None) ->  Printf.printf "Fin de FF  -  %!"; fc_gr  
+		|(smthg, None) -> Printf.printf "Fin de FF  -  %!"; fc_gr
 		(* We can improve the flow repartition, we iterate on the updated graph. *)
-		|(path, Some cost) -> loop_ff (update_graph fc_gr path cost)
+		|(path, Some cost) -> Printf.printf "Iteration  -  %!"; loop_ff (update_graph fc_gr path cost)
 	in 
 	(* We transform the (int*int) graph to a string graph to be able to print it. *)	
-	Graph.map (loop_ff init_fc_gr) (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
+	let result = Printf.printf "Result  -  "; loop_ff init_fc_gr
+	in
+		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
 
 
 (*****************************)

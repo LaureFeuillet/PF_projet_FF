@@ -1,8 +1,8 @@
 open Graph
 
 type fc = {
-	flow : int ; 
-	capacity : int } 
+	flow : int ;
+	capacity : int }
 
 type path = (id*id) list
 
@@ -30,4 +30,3 @@ val update_graph: fc graph -> path -> int -> fc graph
 (* Apply the ford-fulkerson algorithm to a graph with specified source and sink. *)
 (* Return a flow/capacity graph with the maximum flow. *)
 val ford_fulkerson: string graph -> id -> id -> string graph
-

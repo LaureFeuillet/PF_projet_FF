@@ -21,16 +21,16 @@ type queue = (id*id*bool*id) list
 (* string graph -> (int * int) graph *)
 let init_graph gr = map gr (fun c -> {flow = 0; capacity = (int_of_string c)})
 
-(************************************)
-(* ------------- TOUR ------------- *)
-(************************************)
-
 (* Return the same graph but without arcs. *)
 (* 'a graph -> 'a graph *)
 let graph_without_arcs gr =
 	let result = empty_graph in
 	let f acu id out_arcs = add_node acu id in
 	v_fold gr f result
+
+(************************************)
+(* ------------- TOUR ------------- *)
+(************************************)
 
 (* ----- QUEUE ----- *)
 
@@ -72,7 +72,7 @@ let q_build_path q source = Printf.printf "q_build_path-%!";
 		(* The queue is empty, there is no path to build. *)
 		|None -> []
 		|Some id_without_option -> (match q with
-			(* We reached the end of the queue, we can return the builded path. *)
+			(* We reached the end of the queue, we can return the built path. *)
 			|[] -> List.rev path
 			(* We reached the source from the sink, we can return the builded path. *)
 			|(node1, node2, _, _)::tl when ((node1 = source) && (node2 = source)) -> List.rev path
@@ -82,6 +82,31 @@ let q_build_path q source = Printf.printf "q_build_path-%!";
 			|_::tl -> loop tl id path
 		)
 	in loop q q_id_first []
+
+(* ----- PATH/MIN ----- *)
+
+(* Find the minimal cost of a path *)
+(* 'a graph -> path -> int option *)
+let find_min_from_path gr path = Printf.printf "find_min_from_path-%!";
+	let path_label_first = match path with
+		(* There is no path from source to sink. *)
+		|[] -> None
+		(* Label of the arc from sink to its father, needed to start the recursion. *)
+		|(idS, idD, origin)::tail -> (find_arc_with_origin gr idS idD origin)
+	in
+	let rec loop remaining_path min = match remaining_path with
+		(* We toured all the path, we can return the min cost. *)
+		| [] -> min
+		(* Compare the label of the next arc to the actual min, and update this value if needed. *)
+		| (idS, idD, origin)::tl ->
+			if (find_arc_with_origin gr idS idD origin) < min
+			(* If the label of the current arc is lesser than the actual min we keep going with this value, *)
+			then loop tl (find_arc_with_origin gr idS idD origin)
+			(* else we keep the current min. *)
+			else loop tl min
+	in loop path path_label_first
+
+(* ----- RESIDUAL GRAPH ----- *)
 
 (* Construct a residual graph from a capacity graph *)
 (* fc graph -> int graph *)
@@ -99,42 +124,24 @@ let residual_graph gr = Printf.printf "residual_graph-%!";
 	in
 	v_fold gr f result
 
-(* Find the minimal cost of a path *)
-(* 'a graph -> path -> int option *)
-let find_min_from_path gr path = Printf.printf "find_min_from_path-%!";
-	let path_label_first = match path with
-		(* There is no path from source to sink. *)
-		|[] -> None
-		(* Label of the arc from sink to its father, needed to start the recursion. *)
-		|(idS,idD)::tail -> find_arc gr idS idD
-	in
-	let rec loop remaining_path min = match remaining_path with
-		(* We toured all the path, we can return the min cost. *)
-		| [] -> min
-		(* Compare the label of the next arc to the actual min, and update this value if needed. *)
-		| (idS, idD)::tl ->
-			if find_arc gr idS idD < min
-			then loop tl (find_arc gr idS idD)
-			else loop tl min
-	in loop path path_label_first
 
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
 (* 'a graph -> id -> id -> path * int option *)
 let tour_residual_graph gr source sink =
     (* Here we build the queue of the course in width. *)
-    let rec loop_queue current_node current_outarcs q = Printf.printf "1-%!";
+    let rec loop_queue current_node current_outarcs q =
 		match (current_node, current_outarcs) with
 		    (* We just found the sink ! We add it to the queue and finish loop_queue. *)
-		    | (_,((node, (_, origin))::tail)) when node = sink -> Printf.printf "2-%!"; ((sink, current_node, false, origin)::q)
+		    | (_,((node, (_, origin))::tail)) when node = sink -> ((sink, current_node, false, origin)::q)
 		    (* There are no more arcs from current_node, we iterate on the next unmarked node of the queue. *)
 		    | (_,[]) -> (match (q_first_not_marked (q_mark_element q current_node)) with
 				(* All elements of the queue are marked, there is no path from source to sink. *)
-				|None -> Printf.printf "4-%!"; []
+				|None -> []
 				(* Just an iteration on the next available (not marked) element of the queue. *)
-				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) (q_mark_element q current_node)
+				|Some w -> loop_queue w (out_arcs gr w) (q_mark_element q current_node)
 			)
 		    (* There still are some arcs from the current_node. *)
-		    | (_,((idD, (_,origin))::tail)) -> Printf.printf "6-%!";
+		    | (_,((idD, (_,origin))::tail)) ->
 				(* The destination is already in the queue, we dont add it and check the next destination. *)
 				if (q_exists q idD)
 				then (loop_queue current_node tail q)
@@ -142,13 +149,13 @@ let tour_residual_graph gr source sink =
 				else (loop_queue current_node tail ((idD, current_node, false, origin)::q))
 	in
 	(* Calling the loop to build the queue from source to sink. *)
-	let q = Printf.printf "7-%!"; loop_queue source (out_arcs gr source) [(source, source, false, source)]
+	let q = loop_queue source (out_arcs gr source) [(source, source, false, source)]
 	in
 	(* Building the associated path of the queue.  *)
-	let path = Printf.printf "8-%!"; q_build_path q source
+	let path = q_build_path q source
 	in
 	(* Finding the incrementation value on the path. *)
-	let min = Printf.printf "9-%!"; find_min_from_path gr path
+	let min = find_min_from_path gr path
 	(* Return (path, min) *)
 	in (path, min)
 
@@ -164,7 +171,7 @@ let update_graph gr path cost = Printf.printf "update_graph-%!";
 	let result_path = gr
 	in
 	(* For each arc of the path, we find the corresponding arc in the initial graph and update it. *)
-	let update_arc result_arc idS idD origin = match (find_arc gr idS idD) with
+	let update_arc result_arc idS idD = match (find_arc gr idS idD) with
 		(* The considering arc doesn't exist, there are 2 possibilities, *)
 		|None -> (match (find_arc gr idD idS) with
 			(* - this arc really doesn't exist. *)
@@ -179,7 +186,7 @@ let update_graph gr path cost = Printf.printf "update_graph-%!";
 		(* An empty path means that we have the final updated graph. *)
 		|[] -> result_path
 		(* Otherwise we iterate on the rest of the path after updating the graph considering the current arc of the path. *)
-		|(idS, idD, origin)::tl -> loop tl (update_arc result_path idS idD origin)
+		|(idS, idD, _)::tl -> loop tl (update_arc result_path idS idD)
 	(* Calling the loop on the initial graph. *)
 	in loop path result_path
 
@@ -205,7 +212,7 @@ let ford_fulkerson gr source sink =
 	let result = loop_ff init_fc_gr
 	in
 		(* We transform the (int*int) graph to a string graph to be able to print it. *)
-		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
+		map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
 
 
 (*****************************)

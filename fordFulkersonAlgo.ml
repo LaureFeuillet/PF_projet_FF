@@ -17,25 +17,22 @@ type queue = (id*id*bool) list
 (* ----------- INITIALIZE --------- *)
 (************************************)
 
-let init_multi_graph gr source_list sink_list = 
-	let graph = add_node (add_node gr "theChosenSink") "theChosenSource" in
+(* Construct a flow graph from a given capacity graph. *)
+(* string graph -> (int * int) graph *)
+let init_graph gr = map gr (fun c -> {flow = 0.0; capacity = (float_of_string c)})
 
+(* Construct a classic graph from a multi-source/multi-sink graph *)
+let init_multi_graph gr source_list sink_list =
+	let graph = add_node (add_node gr "theChosenSink") "theChosenSource" in
 	let rec loop_source gr node_list = match node_list with
 		| [] -> gr
 		| id::tail -> loop_source (add_arc gr "theChosenSource" id infinity) tail
 	in
-	let rec loop_sink gr node_list = match node_list with 
+	let rec loop_sink gr node_list = match node_list with
 		| [] -> gr
 		| id::tail -> loop_sink (add_arc gr id "theChosenSink" infinity) tail
 	in
-
-	let new_graph1 = loop_sink graph sink_list in
-	loop_source new_graph1 source_list
-
-
-(* Construct a flow graph from a given capacity graph. *)
-(* string graph -> (float * float) graph *)
-let init_graph gr = map gr (fun c -> {flow = 0; capacity = (float_of_string c)})
+	loop_source (loop_sink graph sink_list) source_list
 
 (************************************)
 (* ------------- TOUR ------------- *)
@@ -104,17 +101,17 @@ let q_build_path q source =
 	in loop q q_id_first []
 
 (* Construct a residual graph from a capacity graph *)
-(* fc graph -> float graph *)
+(* fc graph -> int graph *)
 let residual_graph gr = 
 	let result = graph_without_arcs gr in
 	let rec f acu id out_arcs = match out_arcs with
 		(* We are going to start from an empty graph (only nodes) and add the corresponding arcs to build the residual graph. *)
 		| [] -> acu
-		| (idD,{flow = 0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
-		| (idD,{flow = flot; capacity = capa})::tail -> 
-			if flot == capa 
-			then f (add_arc acu idD id flot) id tail 
-			else f (add_arc (add_arc acu idD id flot) id idD (capa-flot)) id tail  	
+		| (idD,{flow = 0.0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
+		| (idD,{flow; capacity})::tail -> 
+			if flow == capacity 
+			then f (add_arc acu idD id flow) id tail 
+			else f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail  	
 	in
 	v_fold gr f result
 	
@@ -138,7 +135,7 @@ let find_min_from_path gr path =
 	in loop path path_label_first
 
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
-(* 'a graph -> id -> id -> path * float option *)
+(* 'a graph -> id -> id -> path * int option *)
 let tour_residual_graph gr source sink = 
     (* Here we build the queue of the course in width. *)
     let rec loop_queue current_node current_outarcs q = Printf.printf "1-%!"; 
@@ -177,7 +174,7 @@ let tour_residual_graph gr source sink =
 (************************************)
 
 (* Update a flow graph according to an incrementation path and its minimal cost. *)
-(* fc graph -> path -> float -> fc graph *)
+(* fc graph -> path -> int -> fc graph *)
 let update_graph gr path cost = 
 	(* The base is the given graph. *)
 	let result_path = gr 
@@ -209,12 +206,12 @@ let update_graph gr path cost =
 
 (* Applying the Ford Fulkerson Algorithm to a given graph with specified source and sink. *)
 (* string graph -> id -> id -> string graph *)
-let ford_fulkerson gr source sink = 
+let ford_fulkerson gr sources sinks = 
 	(* Construct a flow graph from the given capacity graph, needed to launch the loop. *)
-	let init_fc_gr = init_graph gr
+	let init_fc_gr = init_multi_graph gr sources sinks
 	in
 	(* Loop on (path, min). *)
-	let rec loop_ff fc_gr = match (tour_residual_graph (residual_graph fc_gr) source sink) with
+	let rec loop_ff fc_gr = match (tour_residual_graph (residual_graph fc_gr) "theChosenSource" "theChosenSink") with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
 		|([], None) -> fc_gr  
 		|(smthg, None) -> fc_gr
@@ -223,7 +220,9 @@ let ford_fulkerson gr source sink =
 	in 
 	let result = loop_ff init_fc_gr
 	in
-		(* We transform the (float*float) graph to a string graph to be able to print it. *)
+	let result = rebuild_multi_graph result sinks
+	in
+		(* We transform the (int*int) graph to a string graph to be able to print it. *)
 		Graph.map result (fun {flow = f; capacity = c} -> (string_of_float f)^"/"^(string_of_float c))
 
 

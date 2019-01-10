@@ -46,7 +46,23 @@ let v_fold gr f acu = List.fold_left (fun acu (id, out) -> f acu id out) acu gr
 let map gr f = 
 List.map (fun (idO, outarc) -> (idO, (List.map (fun (idD,label) -> (idD,(f label))) outarc))) gr
 
-
+let rebuild_multi_graph gr sinks =
+	let rec addArcs new_gr current_id outArcs = match outArcs with
+		| [] -> new_gr
+		| (id, lbl)::tl -> addArcs (add_arc new_gr current_id id lbl) current_id tl
+	in
+	let rec loop gr new_gr = match gr with
+		| [] -> new_gr
+		| (id, _)::tl when id="theChosenSource"-> loop tl new_gr
+		| (id, _)::tl when id="theChosenSink"-> loop tl new_gr
+		| (id, outArcs)::tl -> loop tl (addArcs (add_node new_gr id) id outArcs)
+	in
+	let rec f acu current_id outArcs = match outArcs with
+		| [] -> acu
+		| (id, _)::tl when id="theChosenSink"-> f acu id tl
+		| (id, lbl)::tl -> f (add_arc acu current_id id lbl) id tl
+	in
+	loop gr (v_fold gr f empty_graph)
 
 
 

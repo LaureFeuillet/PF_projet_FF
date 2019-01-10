@@ -27,6 +27,7 @@ val tour_residual_graph: int  graph -> id -> id -> path * int option
 val update_graph: fc graph -> path -> int -> fc graph
 
 (**************  FORD-FULKERSON  **************)
-
+(* Apply the ford-fulkerson algorithm to a graph with specified source and sink. *)
+(* Return a flow/capacity graph with the maximum flow. *)
 val ford_fulkerson: string graph -> id -> id -> string graph
 

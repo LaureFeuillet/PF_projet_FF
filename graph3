@@ -6,29 +6,45 @@ v D
 v E
 v F
 v G
+v H
+v I
+v J
 v P
 
-e "30" S A
-e "20" S B
-e "35" S C
+e "6" S A
+e "8" S B
+e "14" S C
 
-e "5" A D
-e "5" A E
+e "6" A D
+e "4" A B
+e "4" A E
 
-e "20" B E
-e "10" B F
-e "5" B G
+e "3" B I
+e "7" B F
 
-e "10" C D
-e "10" C E
-e "10" C F
-e "10" C G
+e "1" C B
+e "8" C F
+e "2" C G
 
-e "10" D P
+e "8" D E
+e "2" D H
 
-e "25" E P
+e "4" E H
+e "1" E I
+e "1" E J
 
-e "20" F P
+e "5" F A
+e "11" F G
 
-e "25" G P
+e "4" G I
+e "9" G J
+e "2" G P
 
+e "3" H I
+e "9" H P
+
+e "7" I F
+e "8" I J
+e "6" I P
+
+e "12" J P

@@ -1,11 +1,16 @@
 open Graph
 
+(* Record to represent flow/capacity to have some "fc graph" types. *)
 type fc = {
-	flow : int ; 
-	capacity : int } 
+	flow : float ; 
+	capacity : float } 
 
+(* A path is a list of arcs between nodes. *)
 type path = (id*id) list
 
+(* A queue is a list of (node, father, marked_or_not).
+ * A marked element means that all neighbors of the node are already in the queue. 
+ *)
 type queue = (id*id*bool) list
 
 (************************************)
@@ -14,7 +19,20 @@ type queue = (id*id*bool) list
 
 (* Construct a flow graph from a given capacity graph. *)
 (* string graph -> (int * int) graph *)
-let init_graph gr = map gr (fun c -> {flow = 0; capacity = (int_of_string c)})
+let init_graph gr = map gr (fun c -> {flow = 0.0; capacity = (float_of_string c)})
+
+(* Construct a classic graph from a multi-source/multi-sink graph *)
+let init_multi_graph gr source_list sink_list =
+	let graph = add_node (add_node gr "theChosenSink") "theChosenSource" in
+	let rec loop_source gr node_list = match node_list with
+		| [] -> gr
+		| id::tail -> loop_source (add_arc gr "theChosenSource" id infinity) tail
+	in
+	let rec loop_sink gr node_list = match node_list with
+		| [] -> gr
+		| id::tail -> loop_sink (add_arc gr id "theChosenSink" infinity) tail
+	in
+	loop_source (loop_sink graph sink_list) source_list
 
 (************************************)
 (* ------------- TOUR ------------- *)
@@ -28,12 +46,6 @@ let graph_without_arcs gr =
 	v_fold gr f result
 
 (* ----- QUEUE ----- *)
-
-let q_print q =
-	let rec loop q = match q with
-		|[] -> ()
-		|hd::tl -> Printf.printf " %d |" hd
-	in loop (List.rev q)
 
 (* Add an element to the queue. *)
 (* queue -> queue *)
@@ -73,14 +85,17 @@ let q_build_path q source =
 		| (id, _, _)::_ -> Some id 
 	in
 	let rec loop q id path = match id with
+		(* We are going to start by the end of the queue, the sink, and move to its father, and so on, until we reach the source. *)
 		(* The queue is empty, there is no path to build. *)
 		|None -> []
 		|Some id_without_option -> (match q with
 			(* We reached the end of the queue, we can return the builded path. *)
 			|[] -> List.rev path
-			(*  *)
+			(* We reached the source from the sink, we can return the builded path. *)
 			|(node1, node2, _)::tl when ((node1 = source) && (node2 = source)) -> List.rev path
+			(* We found an arc that approaches us to the source, we add it to the path and continue. *)
 			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((father, id_without_option)::path)
+			(* A useless entry of the queue, we have to iterate.  *)
 			|_::tl -> loop tl id path
 		)
 	in loop q q_id_first []
@@ -90,24 +105,29 @@ let q_build_path q source =
 let residual_graph gr = 
 	let result = graph_without_arcs gr in
 	let rec f acu id out_arcs = match out_arcs with
+		(* We are going to start from an empty graph (only nodes) and add the corresponding arcs to build the residual graph. *)
 		| [] -> acu
-		| (idD,{flow = 0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
-		| (idD,{flow = flot; capacity = capa})::tail -> 
-			if flot == capa 
-			then f (add_arc acu idD id flot) id tail 
-			else f (add_arc (add_arc acu idD id flot) id idD (capa-flot)) id tail  	
+		| (idD,{flow = 0.0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
+		| (idD,{flow; capacity})::tail -> 
+			if flow == capacity 
+			then f (add_arc acu idD id flow) id tail 
+			else f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail  	
 	in
 	v_fold gr f result
 	
 (* Find the minimal cost of a path *)
-(* 'a graph -> path -> int option *)
+(* 'a graph -> path -> float option *)
 let find_min_from_path gr path = 
 	let path_label_first = match path with
+		(* There is no path from source to sink. *)
 		|[] -> None
+		(* Label of the arc from sink to its father, needed to start the recursion. *)
 		|(idS,idD)::tail -> find_arc gr idS idD
 	in 
 	let rec loop remaining_path min = match remaining_path with
+		(* We toured all the path, we can return the min cost. *)
 		| [] -> min
+		(* Compare the label of the next arc to the actual min, and update this value if needed. *)
 		| (idS, idD)::tl -> 
 			if find_arc gr idS idD < min 
 			then loop tl (find_arc gr idS idD)
@@ -159,12 +179,13 @@ let update_graph gr path cost =
 	(* The base is the given graph. *)
 	let result_path = gr 
 	in
+	(* For each arc of the path, we find the corresponding arc in the initial graph and update it. *)
 	let update_arc result_arc idS idD = match (find_arc gr idS idD) with
-		(* The considering arc doesn't exist, there are 2 possibilities : *)
+		(* The considering arc doesn't exist, there are 2 possibilities, *)
 		|None -> (match (find_arc gr idD idS) with 
-			(* This arc really doesn't exist. *)
+			(* - this arc really doesn't exist. *)
 			|None -> failwith "error in update_graphe, path invalid" 
-			(* The corresponding arc is inversed in the initial graph, because of the residual graph. *)
+			(* - the corresponding arc is inversed in the initial graph, because of the residual graph. *)
 			|Some {flow = f; capacity = c} -> add_arc result_arc idD idS {flow = f - cost; capacity = c} 
 		)
 		(* We increment the flow of the arc according to the cost. *)
@@ -183,29 +204,28 @@ let update_graph gr path cost =
 (* -------- FORD-FULKERSON -------- *)
 (************************************)
 
-(* Applying the Ford Fulkerson Algorithm to a given graph. *)
+(* Applying the Ford Fulkerson Algorithm to a given graph with specified source and sink. *)
 (* string graph -> id -> id -> string graph *)
-let ford_fulkerson gr source sink = 
-	(* Construct a flow graph from the given capacity graph. *)
-	let init_fc_gr = Printf.printf "Initialisation  -  %!"; init_graph gr
+let ford_fulkerson gr sources sinks = 
+	(* Construct a flow graph from the given capacity graph, needed to launch the loop. *)
+	let init_fc_gr = init_multi_graph gr sources sinks
 	in
 	(* Loop on (path, min). *)
-	let rec loop_ff fc_gr = Printf.printf "Loop  -  "; match (tour_residual_graph (residual_graph fc_gr) source sink) with
+	let rec loop_ff fc_gr = match (tour_residual_graph (residual_graph fc_gr) "theChosenSource" "theChosenSink") with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
-		|([], None) ->  Printf.printf "Fin de FF  -  %!"; fc_gr  
-		|(smthg, None) -> Printf.printf "Fin de FF  -  %!"; fc_gr
+		|([], None) -> fc_gr  
+		|(smthg, None) -> fc_gr
 		(* We can improve the flow repartition, we iterate on the updated graph. *)
-		|(path, Some cost) -> Printf.printf "Iteration  -  %!"; loop_ff (update_graph fc_gr path cost)
+		|(path, Some cost) -> loop_ff (update_graph fc_gr path cost)
 	in 
-	(* We transform the (int*int) graph to a string graph to be able to print it. *)	
-	let result = Printf.printf "Result  -  "; loop_ff init_fc_gr
+	let result = loop_ff init_fc_gr
 	in
-		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
+	let result = rebuild_multi_graph result sinks
+	in
+		(* We transform the (int*int) graph to a string graph to be able to print it. *)
+		Graph.map result (fun {flow = f; capacity = c} -> (string_of_float f)^"/"^(string_of_float c))
 
 
 (*****************************)
 (* -------- THE END -------- *)
 (*****************************)
-
-
-

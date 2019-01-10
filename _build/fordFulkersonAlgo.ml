@@ -107,11 +107,16 @@ let residual_graph gr =
 	let rec f acu id out_arcs = match out_arcs with
 		(* We are going to start from an empty graph (only nodes) and add the corresponding arcs to build the residual graph. *)
 		| [] -> acu
-		| (idD,{flow = 0.0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
-		| (idD,{flow; capacity})::tail -> 
-			if flow == capacity 
-			then f (add_arc acu idD id flow) id tail 
-			else f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail  	
+		| (idD,{flow=0.0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
+		| (idD,{flow; capacity})::tail when flow=capacity -> f (add_arc acu idD id flow) id tail
+		| (idD,{flow; capacity})::tail -> f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail
+
+	(*
+	if flow == capacity 
+			then f (add_arc acu idD id flow) id tail
+			else f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail 
+*)
+
 	in
 	v_fold gr f result
 	

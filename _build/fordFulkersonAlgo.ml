@@ -2,14 +2,14 @@ open Graph
 
 (* Record to represent flow/capacity to have some "fc graph" types. *)
 type fc = {
-	flow : float ; 
-	capacity : float } 
+	flow : int ;
+	capacity : int }
 
 (* A path is a list of arcs between nodes. *)
 type path = (id*id) list
 
 (* A queue is a list of (node, father, marked_or_not).
- * A marked element means that all neighbors of the node are already in the queue. 
+ * A marked element means that all neighbors of the node are already in the queue.
  *)
 type queue = (id*id*bool) list
 
@@ -19,18 +19,18 @@ type queue = (id*id*bool) list
 
 (* Construct a flow graph from a given capacity graph. *)
 (* string graph -> (int * int) graph *)
-let init_graph gr = map gr (fun c -> {flow = 0.0; capacity = (float_of_string c)})
+let init_graph gr = map gr (fun c -> {flow = 0; capacity = (int_of_string c)})
 
 (* Construct a classic graph from a multi-source/multi-sink graph *)
 let init_multi_graph gr source_list sink_list =
 	let graph = add_node (add_node gr "theChosenSink") "theChosenSource" in
 	let rec loop_source gr node_list = match node_list with
 		| [] -> gr
-		| id::tail -> loop_source (add_arc gr "theChosenSource" id infinity) tail
+		| id::tail -> loop_source (add_arc gr "theChosenSource" id (string_of_int max_int)) tail
 	in
 	let rec loop_sink gr node_list = match node_list with
 		| [] -> gr
-		| id::tail -> loop_sink (add_arc gr id "theChosenSink" infinity) tail
+		| id::tail -> loop_sink (add_arc gr id "theChosenSink" (string_of_int max_int)) tail
 	in
 	loop_source (loop_sink graph sink_list) source_list
 
@@ -40,7 +40,7 @@ let init_multi_graph gr source_list sink_list =
 
 (* Return the same graph but without arcs. *)
 (* 'a graph -> 'a graph *)
-let graph_without_arcs gr = 
+let graph_without_arcs gr =
 	let result = empty_graph in
 	let f acu id out_arcs = add_node acu id in
 	v_fold gr f result
@@ -53,20 +53,20 @@ let q_add q e = e::q
 
 (* Return the id of the first element not marked in the queue. *)
 (* queue -> id option *)
-let q_first_not_marked q = 
-	let rec loop q = match q with 
+let q_first_not_marked q =
+	let rec loop q = match q with
 		|[] -> None
 		|(id, _,false)::tl -> Some id
 		|hd::tl -> loop tl
-	in loop (List.rev q) 
+	in loop (List.rev q)
 
 (* Check if the given node already exists in the queue. *)
 (* queue -> id -> bool *)
-let q_exists q id = List.exists (fun (x, _, _) -> x = id) q 
+let q_exists q id = List.exists (fun (x, _, _) -> x = id) q
 
 (* Mark the element with the given id. *)
 (* queue -> id -> queue *)
-let q_mark_element q id = 
+let q_mark_element q id =
 	let rec loop current_q acu = match current_q with
 		|[] -> failwith "element not found in the queue"
 		|(node, _, true)::tl when node = id -> failwith "element already marked"
@@ -78,11 +78,11 @@ let q_mark_element q id =
 
 (* Build a path from a queue *)
 (* q -> path *)
-let q_build_path q source = 
+let q_build_path q source =
 	(* Last element entered in the queue, supposed to be the sink, needed to call the loop. *)
 	let q_id_first = match q with
 		| [] -> None
-		| (id, _, _)::_ -> Some id 
+		| (id, _, _)::_ -> Some id
 	in
 	let rec loop q id path = match id with
 		(* We are going to start by the end of the queue, the sink, and move to its father, and so on, until we reach the source. *)
@@ -102,48 +102,48 @@ let q_build_path q source =
 
 (* Construct a residual graph from a capacity graph *)
 (* fc graph -> int graph *)
-let residual_graph gr = 
+let residual_graph gr =
 	let result = graph_without_arcs gr in
 	let rec f acu id out_arcs = match out_arcs with
 		(* We are going to start from an empty graph (only nodes) and add the corresponding arcs to build the residual graph. *)
 		| [] -> acu
-		| (idD,{flow=0.0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
+		| (idD,{flow=0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
 		| (idD,{flow; capacity})::tail when flow=capacity -> f (add_arc acu idD id flow) id tail
 		| (idD,{flow; capacity})::tail -> f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail
 
 	(*
-	if flow == capacity 
+	if flow == capacity
 			then f (add_arc acu idD id flow) id tail
-			else f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail 
+			else f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail
 *)
 
 	in
 	v_fold gr f result
-	
+
 (* Find the minimal cost of a path *)
-(* 'a graph -> path -> float option *)
-let find_min_from_path gr path = 
+(* 'a graph -> path -> int option *)
+let find_min_from_path gr path =
 	let path_label_first = match path with
 		(* There is no path from source to sink. *)
 		|[] -> None
 		(* Label of the arc from sink to its father, needed to start the recursion. *)
 		|(idS,idD)::tail -> find_arc gr idS idD
-	in 
+	in
 	let rec loop remaining_path min = match remaining_path with
 		(* We toured all the path, we can return the min cost. *)
 		| [] -> min
 		(* Compare the label of the next arc to the actual min, and update this value if needed. *)
-		| (idS, idD)::tl -> 
-			if find_arc gr idS idD < min 
+		| (idS, idD)::tl ->
+			if find_arc gr idS idD < min
 			then loop tl (find_arc gr idS idD)
 			else loop tl min
 	in loop path path_label_first
 
 (* Tour a residual graph to find a path from source to sink, and its minimal cost *)
 (* 'a graph -> id -> id -> path * int option *)
-let tour_residual_graph gr source sink = 
+let tour_residual_graph gr source sink =
     (* Here we build the queue of the course in width. *)
-    let rec loop_queue current_node current_outarcs q = Printf.printf "1-%!"; 
+    let rec loop_queue current_node current_outarcs q = Printf.printf "1-%!";
 		match (current_node, current_outarcs) with
 		    (* We just found the sink ! We add it to the queue and finish loop_queue. *)
 		    | (_,((node, _)::tail)) when node = sink -> Printf.printf "2-%!"; ((sink, current_node, false)::q)
@@ -155,15 +155,15 @@ let tour_residual_graph gr source sink =
 				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) (q_mark_element q current_node)
 			)
 		    (* There still are some arcs from the current_node. *)
-		    | (_,((idD, _)::tail)) -> Printf.printf "6-%!"; 
+		    | (_,((idD, _)::tail)) -> Printf.printf "6-%!";
 				(* The destination is already in the queue, we dont add it and check the next destination. *)
-				if (q_exists q idD) 
-				then (loop_queue current_node tail q) 
+				if (q_exists q idD)
+				then (loop_queue current_node tail q)
 				(* This destination isn't in the queue, wae add it unmarked and iterate. *)
-				else (loop_queue current_node tail ((idD, current_node, false)::q)) 
-	in 
+				else (loop_queue current_node tail ((idD, current_node, false)::q))
+	in
 	(* Calling the loop to build the queue from source to sink. *)
-	let q = Printf.printf "7-%!"; loop_queue source (out_arcs gr source) [(source, source, false)] 
+	let q = Printf.printf "7-%!"; loop_queue source (out_arcs gr source) [(source, source, false)]
 	in
 	(* Building the associated path of the queue.  *)
 	let path = Printf.printf "8-%!"; q_build_path q source
@@ -180,18 +180,18 @@ let tour_residual_graph gr source sink =
 
 (* Update a flow graph according to an incrementation path and its minimal cost. *)
 (* fc graph -> path -> int -> fc graph *)
-let update_graph gr path cost = 
+let update_graph gr path cost =
 	(* The base is the given graph. *)
-	let result_path = gr 
+	let result_path = gr
 	in
 	(* For each arc of the path, we find the corresponding arc in the initial graph and update it. *)
 	let update_arc result_arc idS idD = match (find_arc gr idS idD) with
 		(* The considering arc doesn't exist, there are 2 possibilities, *)
-		|None -> (match (find_arc gr idD idS) with 
+		|None -> (match (find_arc gr idD idS) with
 			(* - this arc really doesn't exist. *)
-			|None -> failwith "error in update_graphe, path invalid" 
+			|None -> failwith "error in update_graphe, path invalid"
 			(* - the corresponding arc is inversed in the initial graph, because of the residual graph. *)
-			|Some {flow = f; capacity = c} -> add_arc result_arc idD idS {flow = f - cost; capacity = c} 
+			|Some {flow = f; capacity = c} -> add_arc result_arc idD idS {flow = f - cost; capacity = c}
 		)
 		(* We increment the flow of the arc according to the cost. *)
 		|Some {flow = f; capacity = c} -> add_arc result_arc idS idD {flow = f + cost; capacity = c}
@@ -202,7 +202,7 @@ let update_graph gr path cost =
 		(* Otherwise we iterate on the rest of the path after updating the graph considering the current arc of the path. *)
 		|(idS, idD)::tl -> loop tl (update_arc result_path idS idD)
 	(* Calling the loop on the initial graph. *)
-	in loop path result_path 
+	in loop path result_path
 
 
 (************************************)
@@ -211,24 +211,26 @@ let update_graph gr path cost =
 
 (* Applying the Ford Fulkerson Algorithm to a given graph with specified source and sink. *)
 (* string graph -> id -> id -> string graph *)
-let ford_fulkerson gr sources sinks = 
+let ford_fulkerson gr sources sinks =
 	(* Construct a flow graph from the given capacity graph, needed to launch the loop. *)
-	let init_fc_gr = init_multi_graph gr sources sinks
+	let init_multi_gr = init_multi_graph gr sources sinks
+	in
+	let init_fc_gr = init_graph init_multi_gr
 	in
 	(* Loop on (path, min). *)
 	let rec loop_ff fc_gr = match (tour_residual_graph (residual_graph fc_gr) "theChosenSource" "theChosenSink") with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
-		|([], None) -> fc_gr  
-		|(smthg, None) -> fc_gr
+		|([], None) -> Printf.printf "p1-%!" ;fc_gr
+		|(smthg, None) -> Printf.printf "p2-%!"; fc_gr
 		(* We can improve the flow repartition, we iterate on the updated graph. *)
-		|(path, Some cost) -> loop_ff (update_graph fc_gr path cost)
-	in 
-	let result = loop_ff init_fc_gr
+		|(path, Some cost) -> Printf.printf "p3-%!"; loop_ff (update_graph fc_gr path cost)
 	in
-	let result = rebuild_multi_graph result sinks
+	let result = Printf.printf "12-%!"; loop_ff init_fc_gr
+	in
+	let result = Printf.printf "13-%!"; Graph.rebuild_multi_graph result sinks
 	in
 		(* We transform the (int*int) graph to a string graph to be able to print it. *)
-		Graph.map result (fun {flow = f; capacity = c} -> (string_of_float f)^"/"^(string_of_float c))
+		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
 
 
 (*****************************)

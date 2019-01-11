@@ -1,9 +1,0 @@
-digraph flowGraph {
-
-		rankdir=LR;
-
-		size="8,5"
-
-		node [shape=circle];
-0 -> 1 [label = "10/10"];
-}

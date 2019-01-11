@@ -48,18 +48,11 @@ List.map (fun (idO, outarc) -> (idO, (List.map (fun (idD,label) -> (idD,(f label
 
 (* Rebuild the multi graph from a virtual classic graph *)
 let rebuild_multi_graph gr sinks =
-  (* We add the outarcs from the given id to the new graph *)
-	let rec addArcs new_gr current_id outArcs = match outArcs with
-		| [] -> new_gr
-		| (id, lbl)::tl -> Printf.printf "r1-%!"; addArcs (add_arc new_gr current_id id lbl) current_id tl
-	in
-  (* We "delete" the virtual nodes "theChosenSource" & "theChosenSink" *)
-  (* and  *)
 	let rec loop gr new_gr = match gr with
 		| [] -> new_gr
 		| (id, _)::tl when id="theChosenSource"-> loop tl new_gr
 		| (id, _)::tl when id="theChosenSink"-> loop tl new_gr
-		| (id, outArcs)::tl -> loop tl (addArcs (add_node new_gr id) id outArcs)
+		| (id, outArcs)::tl -> loop tl (add_node new_gr id)
 	in
   (* Funcion to be use in v_flod to  *)
 	let rec f acu current_id outArcs = match (current_id, outArcs) with

@@ -26,7 +26,10 @@
 # Target: graph.ml.depends, tags: { extension:ml, file:graph.ml, ocaml, ocamldep, quiet }
 /usr/bin/ocamldep -modules graph.ml > graph.ml.depends # cached
 # Target: graph.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:graph.cmo, file:graph.ml, implem, ocaml, quiet }
-/usr/bin/ocamlc -c -o graph.cmo graph.ml
+/usr/bin/ocamlc -c -o graph.cmo graph.ml # cached
 # Target: ftest.byte, tags: { byte, dont_link_with, extension:byte, file:ftest.byte, link, ocaml, program, quiet }
-/usr/bin/ocamlc graph.cmo fordFulkersonAlgo.cmo gfile.cmo ftest.cmo -o ftest.byte
-# Compilation successful.
+/usr/bin/ocamlc graph.cmo fordFulkersonAlgo.cmo gfile.cmo ftest.cmo -o ftest.byte # cached
+Backtrace:
+  - Failed to build the target clear
+      - Building clear
+# Compilation unsuccessful.

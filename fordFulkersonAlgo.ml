@@ -71,9 +71,9 @@ let q_mark_element q id =
 		|[] -> failwith "element not found in the queue"
 		|(node, _, true)::tl when node = id -> failwith "element already marked"
 		(* We just found the element to mark, let's do this ! *)
-		|(node, father, false)::tl when node = id -> Printf.printf "a-%!"; List.append (List.rev tl) ((node, father, true)::acu)
+		|(node, father, false)::tl when node = id -> List.append (List.rev tl) ((node, father, true)::acu)
 		(* We have to iterate to find the element to mark. *)
-		|hd::tl -> Printf.printf "b-%!"; loop tl (hd::acu)
+		|hd::tl -> loop tl (hd::acu)
 	in loop (List.rev q) []
 
 (* Build a path from a queue *)
@@ -231,7 +231,6 @@ let ford_fulkerson gr sources sinks =
 	in
 		(* We transform the (int*int) graph to a string graph to be able to print it. *)
 		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
-
 
 (*****************************)
 (* -------- THE END -------- *)

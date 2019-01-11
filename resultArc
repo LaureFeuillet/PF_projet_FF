@@ -6,5 +6,4 @@ digraph flowGraph {
 
 		node [shape=circle];
 0 -> 1 [label = "10/10"];
-1 -> theChosenSink [label = "10/4611686018427387903"];
 }

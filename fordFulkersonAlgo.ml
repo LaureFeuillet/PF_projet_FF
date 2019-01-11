@@ -2,8 +2,8 @@ open Graph
 
 (* Record to represent flow/capacity to have some "fc graph" types. *)
 type fc = {
-	flow : float ; 
-	capacity : float } 
+	flow : int ; 
+	capacity : int } 
 
 (* A path is a list of arcs between nodes. *)
 type path = (id*id) list
@@ -19,18 +19,18 @@ type queue = (id*id*bool) list
 
 (* Construct a flow graph from a given capacity graph. *)
 (* string graph -> (int * int) graph *)
-let init_graph gr = map gr (fun c -> {flow = 0.0; capacity = (float_of_string c)})
+let init_graph gr = map gr (fun c -> {flow = 0.0; capacity = (int_of_string c)})
 
 (* Construct a classic graph from a multi-source/multi-sink graph *)
 let init_multi_graph gr source_list sink_list =
 	let graph = add_node (add_node gr "theChosenSink") "theChosenSource" in
 	let rec loop_source gr node_list = match node_list with
 		| [] -> gr
-		| id::tail -> loop_source (add_arc gr "theChosenSource" id infinity) tail
+		| id::tail -> loop_source (add_arc gr "theChosenSource" id max_int) tail
 	in
 	let rec loop_sink gr node_list = match node_list with
 		| [] -> gr
-		| id::tail -> loop_sink (add_arc gr id "theChosenSink" infinity) tail
+		| id::tail -> loop_sink (add_arc gr id "theChosenSink" max_int) tail
 	in
 	loop_source (loop_sink graph sink_list) source_list
 
@@ -121,7 +121,7 @@ let residual_graph gr =
 	v_fold gr f result
 	
 (* Find the minimal cost of a path *)
-(* 'a graph -> path -> float option *)
+(* 'a graph -> path -> int option *)
 let find_min_from_path gr path = 
 	let path_label_first = match path with
 		(* There is no path from source to sink. *)
@@ -228,7 +228,7 @@ let ford_fulkerson gr sources sinks =
 	let result = rebuild_multi_graph result sinks
 	in
 		(* We transform the (int*int) graph to a string graph to be able to print it. *)
-		Graph.map result (fun {flow = f; capacity = c} -> (string_of_float f)^"/"^(string_of_float c))
+		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
 
 
 (*****************************)

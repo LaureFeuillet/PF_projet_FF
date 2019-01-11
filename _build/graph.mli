@@ -50,8 +50,9 @@ val v_iter: 'a graph -> (id -> 'a out_arcs -> unit) -> unit
 
 val v_fold: 'a graph -> ('b -> id -> 'a out_arcs -> 'b) -> 'b -> 'b
 
-(* maps all arcs of the graph
+(* Maps all arcs of the graph.
  * Nodes keep the same identifiers. *)
 val map: 'a graph -> ('a -> 'b) -> 'b graph
 
-val rebuild_multi_graph : 'a graph -> id list -> 'a graph
+(* Rebuild a multi-sources/multi-sinks graph from a virtual classic graph. *)
+val rebuild_multi_graph : 'a graph -> 'a graph

@@ -3,9 +3,9 @@ open FordFulkersonAlgo
 
 let () =
 
-  if Array.length Sys.argv < 7 then
+  if Array.length Sys.argv < 5 then
 	begin
-	  Printf.printf "\nUsage: %s infile outfile -s sources -p sinks\n\n%!" Sys.argv.(0) ;
+	  Printf.printf "\nUsage: %s infile outfile -s sources -d sinks\n\n%!" Sys.argv.(0) ;
 	  exit 0
 	end ;
 

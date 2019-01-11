@@ -42,15 +42,16 @@ let v_fold gr f acu = List.fold_left (fun acu (id, out) -> f acu id out) acu gr
 let map gr f =
 List.map (fun (idO, outarc) -> (idO, (List.map (fun (idD,label) -> (idD,(f label))) outarc))) gr
 
-(* Rebuild the multi graph from a virtual classic graph *)
-let rebuild_multi_graph gr sinks =
+(* Rebuild a multi-sources/multi-sinks graph from a virtual classic graph. *)
+let rebuild_multi_graph gr =
+  (* Add all nodes except the virtual nodes "theChosenSource" and "theChosenSource". *)
 	let rec loop gr new_gr = match gr with
 		| [] -> new_gr
 		| (id, _)::tl when id = "theChosenSource"-> loop tl new_gr
 		| (id, _)::tl when id = "theChosenSink"-> loop tl new_gr
 		| (id, outArcs)::tl -> loop tl (add_node new_gr id)
 	in
-  (* Funcion to be use in v_flod to  *)
+  (* Function to be use in v_flod to add all arcs except the ones coming from "theChosenSource" and going to "theChosenSink". *)
 	let rec f acu current_id outArcs = match (current_id, outArcs) with
 		| (_, []) -> acu
     | ("theChosenSource", _) -> acu

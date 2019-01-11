@@ -21,7 +21,8 @@ type queue = (id*id*bool) list
 (* string graph -> (int * int) graph *)
 let init_graph gr = map gr (fun c -> {flow = 0; capacity = (int_of_string c)})
 
-(* Construct a classic graph from a multi-source/multi-sink graph *)
+(* Construct a classic graph from a multi-source/multi-sink graph. *)
+(* string graph -> string graph *)
 let init_multi_graph gr source_list sink_list =
 	let graph = add_node (add_node gr "theChosenSink") "theChosenSource" in
 	(* This loop allows us to insert a fake source into the initial graph, from which all the sources come from. *)
@@ -49,10 +50,6 @@ let graph_without_arcs gr =
 
 (* ----- QUEUE ----- *)
 
-(* Add an element to the queue. *)
-(* queue -> queue *)
-let q_add q e = e::q
-
 (* Return the id of the first element not marked in the queue. *)
 (* queue -> id option *)
 let q_first_not_marked q =
@@ -78,7 +75,7 @@ let q_mark_element q id =
 		|hd::tl -> loop tl (hd::acu)
 	in loop (List.rev q) []
 
-(* Build a path from a queue *)
+(* Build a path from a queue. *)
 (* q -> path *)
 let q_build_path q source =
 	(* Last element entered in the queue, supposed to be the sink, needed to call the loop. *)
@@ -97,12 +94,12 @@ let q_build_path q source =
 			|(node1, node2, _)::tl when ((node1 = source) && (node2 = source)) -> List.rev path
 			(* We found an arc that approaches us to the source, we add it to the path and continue. *)
 			|(node, father, _)::tl when node = id_without_option -> loop tl (Some father) ((father, id_without_option)::path)
-			(* A useless entry of the queue, we have to iterate.  *)
+			(* A useless entry of the queue, we have to iterate. *)
 			|_::tl -> loop tl id path
 		)
 	in loop q q_id_first []
 
-(* Construct a residual graph from a capacity graph *)
+(* Construct a residual graph from a capacity graph. *)
 (* fc graph -> int graph *)
 let residual_graph gr =
 	let result = graph_without_arcs gr in
@@ -115,7 +112,7 @@ let residual_graph gr =
 	in
 	v_fold gr f result
 
-(* Find the minimal cost of a path *)
+(* Find the minimal cost of a path. *)
 (* 'a graph -> path -> int option *)
 let find_min_from_path gr path =
 	let path_label_first = match path with
@@ -134,7 +131,7 @@ let find_min_from_path gr path =
 			else loop tl min
 	in loop path path_label_first
 
-(* Tour a residual graph to find a path from source to sink, and its minimal cost *)
+(* Tour a residual graph to find a path from source to sink, and its minimal cost. *)
 (* 'a graph -> id -> id -> path * int option *)
 let tour_residual_graph gr source sink =
     (* Here we build the queue of the course in width. *)
@@ -160,7 +157,7 @@ let tour_residual_graph gr source sink =
 	(* Calling the loop to build the queue from source to sink. *)
 	let q = loop_queue source (out_arcs gr source) [(source, source, false)]
 	in
-	(* Building the associated path of the queue.  *)
+	(* Building the associated path of the queue. *)
 	let path = q_build_path q source
 	in
 	(* Finding the incrementation value on the path. *)
@@ -181,7 +178,7 @@ let update_graph gr path cost =
 	in
 	(* For each arc of the path, we find the corresponding arc in the initial graph and update it. *)
 	let update_arc result_arc idS idD = match (find_arc gr idS idD) with
-		(* The considering arc doesn't exist, there are 2 possibilities, *)
+		(* The considering arc doesn't exist, there are 2 possibilities : *)
 		|None -> (match (find_arc gr idD idS) with
 			(* - this arc really doesn't exist. *)
 			|None -> failwith "error in update_graphe, path invalid"
@@ -223,7 +220,7 @@ let ford_fulkerson gr sources sinks =
 	let result = loop_ff init_fc_gr
 	in
 	(* Rebuilding the initial graph without the fake source and sink. *)
-	let result = Graph.rebuild_multi_graph result sinks
+	let result = Graph.rebuild_multi_graph result
 	in
 		(* We transform the (int*int) graph to a string graph to be able to print it. *)
 		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))

@@ -3,12 +3,15 @@
 	(* ------------ README ------------ *)
 	(************************************)
 
+	   FEUILLET Laure - PLANTEC Maël
+
 * Abstract *
 
 Le but de ce projet de programmation fonctionnelle est d'implémenter un algorithme capable de maximiser le flot d'un graph de flot au regard de l'algorithme de Ford-Fulkerson. Pour atteindre ce but nous utilisons le langage OCaml. 
 
 Amélioration du projet :
-Nous avons choisi de parfaire notre algorithme en ajoutant la fonctionnalité multi-source et multi-puit. Il peut maintenant y avoir plusieurs sources et plusieurs puits. Les sources et puits seront donc à écrire dans la ligne de comande.
+Nous avons choisi de parfaire notre algorithme en ajoutant la fonctionnalité multi-sources et multi-puits. Il peut maintenant y avoir plusieurs sources et plusieurs puits. Les sources et puits seront donc à écrire dans la ligne de comande.
+
 
 * Exécution *
 
@@ -20,11 +23,47 @@ $
 ... il faut préciser les paramètres suivants :
 	-> 'graphe' : un fichier compréhensible par l'algorithme contenant les noeuds et les arcs du graphe initial.
 	-> le ou les 'S' après le -s : le nom de la source ou les noms des différentes sources.
-	-> le ou les 'P' après le -p : le nom du puit ou les noms des différents puits.
+	-> le ou les 'P' après le -p : le nom du puits ou les noms des différents puits.
 	-> 'resultat' : nom du fichier de sortie (inutile de le modifier, laissez resultat)
 	-> 'affichage.png' : nom du fichier de l'image de sortie de l'algorithme.
 
 Cette exécution va créer deux fichiers. Le premier, 'resultat', est un fichier utilisé dans la seconde partie de la ligne de commande qui va nous permettre de récupérer 'affichage.png', le deuxième fichier créé. Ce png apparait dans le dossier racine du projet et permet de visualiser le graphe amélioré avec un flot maximum.
 
+
+* Fichier de graphe compréhensible * 
+
+Le graphe défini ci-dessous comporte trois sommets (1, 2 et 3) et deux arcs. Un de 1 vers 3 avec la valeur X et un autre de 2 vers 1 avec la valeur Y.
+---------
+v 1
+v 2
+v 3
+
+e "X" 1 3 
+e "Y" 2 1 
+---------
+
+
+* Exemples particuliers *
+
+Graphe vide :
+./ftest.byte graphEmpty resultat -s -d && dot -Tpng resultat > graphEmpty.png 
+
+Graphe sans arcs :
+./ftest.byte graphWithoutArcs resultat -s 0 -d 3 && dot -Tpng resultat > graphWithoutArcs.png 
+
+Graphe simple :
+./ftest.byte graphSimple resultat -s 0 1 -d 4 5 && dot -Tpng resultat > graphSimple.png 
+
+Graphe plus complexe (nécessitant le parcours d'un arc allant à l'inverse du flot) :
+./ftest.byte graphComplex resultat -s S -d P J I && dot -Tpng resultat > graphComplex.png 
+
+Graphe très simple contenant une boucle :
+./ftest.byte graphLoop resultat -s 0 -d 1 && dot -Tpng resultat > graphLoop.png 
+
+Graphe très simple avec un arc dont la destination est aussi sa source :
+./ftest.byte graphLoopOnANode resultat -s A B -d C && dot -Tpng resultat > graphLoopOnANode.png 
+
 Bons tests ! 
+
+
 

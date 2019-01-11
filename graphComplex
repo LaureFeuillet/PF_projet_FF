@@ -1,0 +1,50 @@
+v S
+v A
+v B
+v C
+v D
+v E
+v F
+v G
+v H
+v I
+v J
+v P
+
+e "6" S A
+e "8" S B
+e "14" S C
+
+e "6" A D
+e "4" A B
+e "4" A E
+
+e "3" B I
+e "7" B F
+
+e "1" C B
+e "8" C F
+e "2" C G
+
+e "8" D E
+e "2" D H
+
+e "4" E H
+e "1" E I
+e "1" E J
+
+e "5" F A
+e "11" F G
+
+e "4" G I
+e "9" G J
+e "2" G P
+
+e "3" H I
+e "9" H P
+
+e "7" I F
+e "8" I J
+e "6" I P
+
+e "12" J P

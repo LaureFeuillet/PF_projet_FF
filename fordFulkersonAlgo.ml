@@ -24,10 +24,12 @@ let init_graph gr = map gr (fun c -> {flow = 0; capacity = (int_of_string c)})
 (* Construct a classic graph from a multi-source/multi-sink graph *)
 let init_multi_graph gr source_list sink_list =
 	let graph = add_node (add_node gr "theChosenSink") "theChosenSource" in
+	(* This loop allows us to insert a fake source into the initial graph, from which all the sources come from. *)
 	let rec loop_source gr node_list = match node_list with
 		| [] -> gr
 		| id::tail -> loop_source (add_arc gr "theChosenSource" id (string_of_int max_int)) tail
 	in
+	(* This loop allows us to insert a fake sink into the initial graph, to which all the sinks go. *)
 	let rec loop_sink gr node_list = match node_list with
 		| [] -> gr
 		| id::tail -> loop_sink (add_arc gr id "theChosenSink" (string_of_int max_int)) tail
@@ -110,13 +112,6 @@ let residual_graph gr =
 		| (idD,{flow=0; capacity})::tail -> f (add_arc acu id idD capacity) id tail
 		| (idD,{flow; capacity})::tail when flow=capacity -> f (add_arc acu idD id flow) id tail
 		| (idD,{flow; capacity})::tail -> f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail
-
-	(*
-	if flow == capacity
-			then f (add_arc acu idD id flow) id tail
-			else f (add_arc (add_arc acu idD id flow) id idD (capacity-flow)) id tail
-*)
-
 	in
 	v_fold gr f result
 
@@ -143,19 +138,19 @@ let find_min_from_path gr path =
 (* 'a graph -> id -> id -> path * int option *)
 let tour_residual_graph gr source sink =
     (* Here we build the queue of the course in width. *)
-    let rec loop_queue current_node current_outarcs q = Printf.printf "1-%!";
+    let rec loop_queue current_node current_outarcs q =
 		match (current_node, current_outarcs) with
 		    (* We just found the sink ! We add it to the queue and finish loop_queue. *)
-		    | (_,((node, _)::tail)) when node = sink -> Printf.printf "2-%!"; ((sink, current_node, false)::q)
+		    | (_,((node, _)::tail)) when node = sink -> ((sink, current_node, false)::q)
 		    (* There are no more arcs from current_node, we iterate on the next unmarked node of the queue. *)
 		    | (_,[]) -> (match (q_first_not_marked (q_mark_element q current_node)) with
 				(* All elements of the queue are marked, there is no path from source to sink. *)
-				|None -> Printf.printf "4-%!"; []
+				|None ->  []
 				(* Just an iteration on the next available (not marked) element of the queue. *)
-				|Some w -> Printf.printf "5-%!"; loop_queue w (out_arcs gr w) (q_mark_element q current_node)
+				|Some w -> loop_queue w (out_arcs gr w) (q_mark_element q current_node)
 			)
 		    (* There still are some arcs from the current_node. *)
-		    | (_,((idD, _)::tail)) -> Printf.printf "6-%!";
+		    | (_,((idD, _)::tail)) ->
 				(* The destination is already in the queue, we dont add it and check the next destination. *)
 				if (q_exists q idD)
 				then (loop_queue current_node tail q)
@@ -163,13 +158,13 @@ let tour_residual_graph gr source sink =
 				else (loop_queue current_node tail ((idD, current_node, false)::q))
 	in
 	(* Calling the loop to build the queue from source to sink. *)
-	let q = Printf.printf "7-%!"; loop_queue source (out_arcs gr source) [(source, source, false)]
+	let q = loop_queue source (out_arcs gr source) [(source, source, false)]
 	in
 	(* Building the associated path of the queue.  *)
-	let path = Printf.printf "8-%!"; q_build_path q source
+	let path = q_build_path q source
 	in
 	(* Finding the incrementation value on the path. *)
-	let min = Printf.printf "9-%!"; find_min_from_path gr path
+	let min = find_min_from_path gr path
 	(* Return (path, min) *)
 	in (path, min)
 
@@ -220,14 +215,15 @@ let ford_fulkerson gr sources sinks =
 	(* Loop on (path, min). *)
 	let rec loop_ff fc_gr = match (tour_residual_graph (residual_graph fc_gr) "theChosenSource" "theChosenSink") with
 		(* The min doesn't exist, which means we can't improve the flow repartition, we return the current_graph. *)
-		|([], None) -> Printf.printf "p1-%!" ;fc_gr
-		|(smthg, None) -> Printf.printf "p2-%!"; fc_gr
+		|([], None) -> fc_gr
+		|(smthg, None) -> fc_gr
 		(* We can improve the flow repartition, we iterate on the updated graph. *)
-		|(path, Some cost) -> Printf.printf "p3-%!"; loop_ff (update_graph fc_gr path cost)
+		|(path, Some cost) -> loop_ff (update_graph fc_gr path cost)
 	in
-	let result = Printf.printf "12-%!"; loop_ff init_fc_gr
+	let result = loop_ff init_fc_gr
 	in
-	let result = Printf.printf "13-%!"; Graph.rebuild_multi_graph result sinks
+	(* Rebuilding the initial graph without the fake source and sink. *)
+	let result = Graph.rebuild_multi_graph result sinks
 	in
 		(* We transform the (int*int) graph to a string graph to be able to print it. *)
 		Graph.map result (fun {flow = f; capacity = c} -> (string_of_int f)^"/"^(string_of_int c))
